@@ -8,20 +8,20 @@
  "orientation": "portrait",
  "background_color": "#E9EEF6",
  "theme_color": "#2F4FD8",
- "description": "Ouvrez des boosters Pokémon virtuels et complétez votre collection.",
+ "description": "Ouvrez des boosters Pokémon et World of Warcraft virtuels et complétez votre collection.",
  "icons": [
   {
-   "src": "icons/icon-192.png",
+   "src": "Icons/icon-192.png",
    "sizes": "192x192",
    "type": "image/png"
   },
   {
-   "src": "icons/icon-512.png",
+   "src": "Icons/icon-512.png",
    "sizes": "512x512",
    "type": "image/png"
   },
   {
-   "src": "icons/icon-maskable-512.png",
+   "src": "Icons/icon-maskable-512.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "maskable"

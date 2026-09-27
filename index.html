@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Simulateur de boosters</title>
 <meta name="theme-color" content="#2F4FD8">
-<meta name="description" content="Simulateur d’ouverture de boosters Pokémon et suivi de collection">
+<meta name="description" content="Simulateur d’ouverture de boosters (Pokémon, World of Warcraft) et suivi de collection">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" href="Icons/icon-192.png">
+<link rel="apple-touch-icon" href="Icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -101,6 +101,25 @@ nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accen
 .card.star{box-shadow:0 0 0 2px #f5d77a,0 10px 34px rgba(245,190,60,.45)}
 .card.crown{box-shadow:0 0 0 3px #ffe08a,0 0 40px rgba(255,210,90,.75)}
 .card.shiny{box-shadow:0 0 0 2px #c9b8ff,0 10px 34px rgba(170,140,255,.55)}
+/* cartes World of Warcraft */
+.card.wow{--q:#d8d2c4;--fh:38;background:linear-gradient(155deg,hsl(var(--fh) 38% 34%),hsl(var(--fh) 30% 12%) 70%);color:#efe6d2}
+.card.wow .face{background:linear-gradient(180deg,#241d16,#16120d);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--q) 55%,transparent)}
+.card.wow .hd{justify-content:flex-start}
+.card.wow .nm{color:var(--q);flex:1;min-width:0}
+.card.wow .cost{flex:0 0 auto;min-width:1.45em;height:1.45em;padding:0 .2em;border-radius:999px;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#8fb6ff,#1f4fb8 70%);color:#fff;font:800 .82em/1 Figtree,sans-serif;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+.card.wow .art{box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.card.wow .art .emb svg{fill:rgba(255,240,210,.8)}
+.card.wow .fac{position:absolute;left:.4em;bottom:.3em;font-size:.55em;font-weight:700;color:rgba(255,240,210,.85);text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.card.wow .kind{color:#cbbf9f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card.wow .ft{color:#a99c7e}
+.card.wow .ft .st{color:#efe6d2;font-variant-numeric:tabular-nums}
+.card.wow .rar{color:var(--q);font-size:1em;gap:.3em}
+.card.wow.q-E{box-shadow:0 0 0 2px #b35cff,0 10px 34px rgba(163,53,238,.5)}
+.card.wow.q-L{box-shadow:0 0 0 3px #ff8000,0 0 40px rgba(255,128,0,.65)}
+.cell:has(.card.wow){container-type:inline-size}
+.cell .card.wow{--w:100cqw}
+.wowsrc{text-align:center;margin-top:6px}
+.wowsrc .hint{margin-top:6px}
 .badge-new.badge-sold{background:#b7790d;white-space:nowrap}
 .econ{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 16px;margin-bottom:14px}
 .econ .bal{font:800 1.3rem 'Bricolage Grotesque',Figtree,sans-serif}
@@ -177,8 +196,13 @@ const BYID={};CARDS.forEach(c=>BYID[c.id]=c);
 const RARP={C:['Commune',1],U:['Peu commune',2],R:['Rare',3],RR:['Double rare',4],AR:['Illustration rare',5],SR:['Super rare',6],SAR:['Illustration spéciale rare',7],IM:['Immersive',8],S:['Chromatique',9],SSR:['Chromatique super rare',10],UR:['Couronne',11]};
 const RART={C:['Commune',1],U:['Peu commune',2],R:['Rare',3],H:['Rare holo',4],DR:['Double rare',5],ULT:['Ultra rare',6],IR:['Illustration rare',7],SH:['Chromatique',8],SIR:['Illustration spéciale rare',9],SEC:['Rare secrète',10]};
 const SETBY={};SETS.forEach(s=>SETBY[s.code]=s);
+const RARW={C:['Commune',1],U:['Peu commune',2],R:['Rare',3],E:['Épique',5],L:['Légendaire',8]};
+const QC={C:'#d8d2c4',U:'#1eff00',R:'#3a9bff',E:'#b35cff',L:'#ff8000'};
+const FACW={alliance:['Alliance',218],horde:['Horde',0]};
+const KINDW={hero:'Héros',ally:'Allié',ability:'Capacité',instant:'Capacité instantanée',equipment:'Équipement',quest:'Quête',location:'Lieu',other:'Carte'};
+const GLYPH={hero:'M3 18h18l1-11-6 4-4-7-4 7-6-4z',ally:'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z',ability:'M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z',instant:'M13.5 1L4 14h7l-1.5 9L20 10h-7l.5-9z',equipment:'M20 2l-1.5 6.5-8.5 8.5 2 2-2 2-2-2-3 3-2-2 3-3-2-2 2-2 2 2 8.5-8.5z',quest:'M10 3h4l-1 12h-2zM10 18h4v3h-4z',location:'M6 22V9L4 7V3h3v2h2V3h2v2h2V3h2v2h2V3h3v4l-2 2v13h-5v-5h-4v5z',other:'M12 2l10 10-10 10L2 12z'};
 const gameOf=code=>(SETBY[code]||{}).game||'pocket';
-const RT=code=>gameOf(code)==='tcg'?RART:RARP;
+const RT=code=>{const g=gameOf(code);return g==='wow'?RARW:g==='tcg'?RART:RARP};
 const rl=c=>(RT(c.set)[c.r]||[c.r,0])[0];
 const rank=c=>(RT(c.set)[c.r]||[0,0])[1];
 const isHit=c=>rank(c)>=5;
@@ -197,7 +221,20 @@ function rarHTML(r,set){
   return '★'.repeat({AR:1,SR:2,SAR:2,IM:3}[r]||1);
 }
 function hash(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function wowCardHTML(c){
+  const f=FACW[c.fac], fh=f?f[1]:38, h=hash(c.id), x=20+h%60, y=15+(h>>8)%55;
+  const art=`background:radial-gradient(circle at ${x}% ${y}%,hsl(${fh} 70% 62%/.75),transparent 42%),radial-gradient(circle at ${100-x}% ${95-y}%,hsl(${(fh+30)%360} 60% 45%/.6),transparent 50%),linear-gradient(160deg,hsl(${fh} 42% 30%),hsl(${fh} 45% 12%))`;
+  const cls=['card','wow','q-'+c.r];if(c.r==='E'||c.r==='L')cls.push('holo');
+  const st=c.hp?(c.atk!==''?`⚔ ${esc(c.atk)} · ♥ ${esc(c.hp)}`:`♥ ${esc(c.hp)}`):'';
+  const line=c.line||KINDW[c.kind]||'Carte';
+  return `<div class="${cls.join(' ')}" style="--q:${QC[c.r]||QC.C};--fh:${fh}" data-id="${c.id}">
+   <div class="face"><div class="hd">${c.cost!==''?`<span class="cost">${esc(c.cost)}</span>`:''}<span class="nm">${esc(c.name)}</span></div>
+   <div class="art" style="${art}"><div class="emb"><svg viewBox="0 0 24 24"><path d="${GLYPH[c.kind]||GLYPH.other}"/></svg></div>${f||c.cls?`<span class="fac">${esc([f?f[0]:'',c.cls].filter(Boolean).join(' · '))}</span>`:''}</div>
+   <div class="kind">${esc(line)}</div>
+   <div class="ft"><span class="st">${st}</span><span class="rar">●<span style="color:#a99c7e">${String(c.num).padStart(3,'0')}</span></span></div></div></div>`;
+}
 function cardHTML(c,opts={}){
+  if(c.w)return wowCardHTML(c);
   const q=opts.q||'low', useImg=IMG_ENABLED&&S.img!==false, u=useImg?imgUrl(c,'fr',q):null;
   const e=EL[c.el], isT=c.type!=='pokemon';
   const c1=e?e[1]:'#d5dbe6', c2=e?e[2]:'#8d97ab', hue=e?e[3]:220;
@@ -225,6 +262,29 @@ function cardHTML(c,opts={}){
    <div class="ft"><span class="rar">${rarHTML(r,c.set)}</span><span>${tcg?'':c.set+' '}${String(c.num).padStart(3,'0')}</span></div></div>${u?`<img class="real" src="${u}" data-en="${imgUrl(c,'en',q)}" alt="" loading="lazy" decoding="async" crossorigin="anonymous" onload="this.parentNode.classList.add('hasimg')" onerror="imgErr(this)">`:''}</div>`;
 }
 SETS.forEach(s=>s.count=(BYSET[s.code]||[]).length);
+
+/* ---------- données World of Warcraft (data/wow-cards.json, mis à jour par GitHub Actions) ---------- */
+const WOW_URL='data/wow-cards.json';
+let wowInfo=null;
+function mergeWow(d){
+  for(let i=SETS.length-1;i>=0;i--)if(SETS[i].game==='wow'){delete SETBY[SETS[i].code];delete BYSET[SETS[i].code];SETS.splice(i,1)}
+  for(let i=CARDS.length-1;i>=0;i--)if(CARDS[i].w){delete BYID[CARDS[i].id];CARDS.splice(i,1)}
+  if(!d||!Array.isArray(d.sets)||!Array.isArray(d.cards))return;
+  d.sets.forEach(s=>{if(s.raid)return;const code='WOW-'+s.slug,set={code,abbr:s.abbr||s.slug,name:s.name,en:s.en,date:s.date,year:s.year,series:s.block,packs:['Booster'],game:'wow',size:s.size||15};SETS.push(set);SETBY[code]=set;BYSET[code]=[]});
+  d.cards.forEach(a=>{const code='WOW-'+a[0];if(!BYSET[code]||SETBY[code].game!=='wow')return;const c={w:1,set:code,num:a[1],name:a[2],r:a[3],kind:a[4],fac:a[5],cls:a[6],cost:a[7],atk:a[8],hp:a[9],line:a[10],school:a[11],artist:a[12],packs:[],type:'wow',id:code+'-'+a[1]};CARDS.push(c);BYSET[code].push(c);BYID[c.id]=c});
+  for(let i=SETS.length-1;i>=0;i--){const s=SETS[i];if(s.game!=='wow')continue;s.count=BYSET[s.code].length;if(!s.count){delete SETBY[s.code];delete BYSET[s.code];SETS.splice(i,1)}}
+  wowInfo={updated:d.updated||''};
+}
+async function loadWow(manual){
+  try{
+    const r=await fetch(WOW_URL,{cache:manual?'no-store':'default'});
+    if(r.status===404)return {ok:false,missing:true};
+    if(!r.ok)return {ok:false};
+    const d=await r.json(), before=new Set(SETS.filter(s=>s.game==='wow').map(s=>s.code));
+    mergeWow(d);
+    return {ok:true,added:SETS.filter(s=>s.game==='wow'&&!before.has(s.code))};
+  }catch(e){return {ok:false}}
+}
 
 /* ---------- state & persistence ---------- */
 const BLANK=()=>({c:{},p:{},t:0,m:0,keep:1,u:0});
@@ -261,7 +321,21 @@ function poolFor(code,pack){
   if(!pack||set.packs.length<2)return all;
   return all.filter(c=>!c.packs.length||c.packs.includes(pack)||!c.packs.some(p=>set.packs.includes(p)));
 }
+const EPIC_RATE=1/12, LOOT_RATE=1/24; // ≈ 2 épiques et 1 butin par boîte de 24 boosters (approximatif)
+function openWow(code){
+  const set=SETBY[code], all=BYSET[code]||[], used=new Set(), out=[];
+  const draw=f=>{const l=all.filter(c=>!used.has(c.id)&&f(c));if(!l.length)return null;const c=l[Math.floor(Math.random()*l.length)];used.add(c.id);out.push(c);return c};
+  const reg=r=>c=>c.kind!=='hero'&&c.r===r, big=set.size>=18;
+  for(let i=0;i<(big?12:10);i++)draw(reg('C'))||draw(c=>c.kind!=='hero'&&c.r!=='L');
+  for(let i=0;i<(big?4:3);i++)draw(reg('U'))||draw(reg('C'));
+  const loot=Math.random()<LOOT_RATE&&draw(c=>c.r==='L');
+  if(!loot)draw(c=>c.kind==='hero'&&c.r!=='L')||draw(reg('U'))||draw(reg('C'));
+  const epic=Math.random()<EPIC_RATE&&draw(reg('E'));
+  if(!epic)draw(reg('R'))||draw(reg('E'))||draw(reg('U'));
+  return {cards:out,rare:!!(loot||epic)};
+}
 function openPack(code,pack){
+  if(gameOf(code)==='wow')return openWow(code);
   const pool=poolFor(code,pack), R=ratesFor(code);
   const byR={};pool.forEach(c=>(byR[c.r]=byR[c.r]||[]).push(c));
   const hasSAR=Object.values(R).some(v=>Object.values(v.slots||{}).some(s=>'SAR' in s));
@@ -295,10 +369,12 @@ function dupStock(){let n=0,v=0;const k=Math.max(S.keep,1);if(!S.keep)return{n,v
 /* ---------- UI ---------- */
 const view=document.getElementById('view');
 function serOrder(){const seen=[];[...SETS].sort((a,b)=>a.date<b.date?-1:1).forEach(s=>{if(!seen.some(x=>x[0]===s.game&&x[1]===s.series))seen.push([s.game,s.series])});return seen}
-const lastIn=(g,sr)=>[...SETS].filter(s=>s.game===g&&s.series===sr).sort((a,b)=>a.date<b.date?-1:1).slice(-1)[0].code;
-const lastSer=g=>serOrder().filter(x=>x[0]===g).slice(-1)[0][1];
+const lastIn=(g,sr)=>{const l=[...SETS].filter(s=>s.game===g&&s.series===sr).sort((a,b)=>a.date<b.date?-1:1);return l.length?l[l.length-1].code:null};
+const lastSer=g=>{const l=serOrder().filter(x=>x[0]===g);return l.length?l[l.length-1][1]:null};
+const GAMES=[['pocket','Pocket'],['tcg','JCC classique'],['wow','WoW']], GLBL={pocket:'Pocket',tcg:'JCC',wow:'WoW'};
 let game='pocket', series=lastSer('pocket'), tab='open', cur=lastIn('pocket',series), curPack=null, colSet=null, colFilter='all', colRar='all';
 function packHue(code,pack){
+  if(gameOf(code)==='wow'){const s=(SETBY[code]||{}).series||'';return /Azeroth/.test(s)?36:/Burning/.test(s)?105:hash(code)%360}
   const pool=poolFor(code,pack).filter(c=>rank(c)>=4&&c.el);
   const cnt={};pool.forEach(c=>cnt[c.el]=(cnt[c.el]||0)+1);
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
@@ -308,25 +384,44 @@ function packHTML(set,pack,small,pressed){
   const multi=set.packs.length>1;
   return `<button class="pack${small?' small':''}" style="--h:${packHue(set.code,multi?pack:null)}" data-pack="${esc(pack)}" aria-pressed="${pressed}" aria-label="Booster ${esc(set.name)}${multi?' '+esc(pk(pack)):''}">
    <span class="body"><span class="ring"></span></span><span class="top"></span>
-   <span class="label"><span class="code">${set.code} · ${set.count} cartes</span><h3>${esc(set.name)}</h3><span class="pk">${multi?esc(pk(pack)):(set.game==='tcg'?(RATES[set.code]['Regular Pack'].cards+' cartes par booster'):'Booster')}</span></span></button>`;
+   <span class="label"><span class="code">${set.abbr||set.code} · ${set.count} cartes</span><h3>${esc(set.name)}</h3><span class="pk">${multi?esc(pk(pack)):(set.game==='wow'?set.size+' cartes par booster':set.game==='tcg'?(RATES[set.code]['Regular Pack'].cards+' cartes par booster'):'Booster')}</span></span></button>`;
 }
 function tally(){
   const u=Object.keys(S.c).length;document.getElementById('tPacks').innerHTML=`<b>${S.t}</b> booster${S.t>1?'s':''} ouvert${S.t>1?'s':''}`;document.getElementById('tCards').innerHTML=`<b>${u}</b> carte${u>1?'s':''} unique${u>1?'s':''}`;document.getElementById('tMoney').innerHTML=`<b>${fmt(S.m)}</b> 🪙`;
 }
+function gameBar(){return `<div class="series">${GAMES.map(([g,l])=>`<button class="pill" data-game="${g}" aria-pressed="${game===g}">${l}</button>`).join('')}</div>`}
+function bindGames(){view.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>{if(game===b.dataset.game)return;game=b.dataset.game;series=lastSer(game);cur=series?lastIn(game,series):null;render()})}
+function wowSource(){return `<div class="wowsrc"><button class="btn ghost" id="wowup">Chercher de nouvelles extensions</button><p class="hint">Liste des cartes : WoWTCGFR${wowInfo&&wowInfo.updated?`, mise à jour le ${new Date(wowInfo.updated).toLocaleDateString('fr-FR')}`:''}.</p></div>`}
+function bindWowUp(){
+  const b=document.getElementById('wowup');if(!b)return;
+  b.onclick=async()=>{
+    b.disabled=true;b.textContent='Recherche en cours…';
+    const r=await loadWow(true);
+    if(r.ok&&game==='wow'&&!SETBY[cur]){series=lastSer('wow');cur=series?lastIn('wow',series):null}
+    render();
+    if(!r.ok)return msg(r.missing?'La liste des cartes n’a pas encore été générée. Lancez « Mise à jour des cartes WoW » dans l’onglet Actions du dépôt GitHub, puis réessayez.':'Impossible de récupérer la liste des cartes. Vérifiez la connexion, puis réessayez.');
+    const a=r.added;
+    msg(a.length?`${a.length} nouvelle${a.length>1?'s':''} extension${a.length>1?'s':''} : ${a.map(s=>s.name).join(', ')}.`:'Aucune nouvelle extension pour le moment.');
+  };
+}
 function renderOpen(){
   const set=SETS.find(s=>s.code===cur);
+  if(!set){
+    view.innerHTML=`${gameBar()}<div class="stage"><div style="text-align:center;max-width:420px"><h2 style="font-size:1.4rem">Aucune extension chargée</h2><p class="hint">La liste des cartes n’est pas encore sur cet appareil.</p>${game==='wow'?wowSource():''}</div></div>`;
+    bindGames();bindWowUp();return;
+  }
   if(!curPack||!set.packs.includes(curPack))curPack=set.packs[0];
   const serList=serOrder().filter(x=>x[0]===game).map(x=>x[1]).reverse();
   view.innerHTML=`
-   <div class="series"><button class="pill" data-game="pocket" aria-pressed="${game==='pocket'}">Pocket</button><button class="pill" data-game="tcg" aria-pressed="${game==='tcg'}">JCC classique</button></div>
+   ${gameBar()}
    <div class="series serrow">${serList.map(x=>`<button class="pill" data-ser="${esc(x)}" aria-pressed="${x===series}">${esc(x)}</button>`).join('')}</div>
-   <div class="setrail" id="rail">${SETS.filter(s=>s.game===game&&s.series===series).sort((a,b)=>a.date<b.date?-1:1).map(s=>`<button class="setchip" data-set="${s.code}" aria-pressed="${s.code===cur}"><small>${s.code} · ${new Date(s.date).toLocaleDateString('fr-FR',{month:'short',year:'numeric'})}</small><span>${esc(s.name)}</span><small>${own(s.code)}/${s.count} obtenues</small></button>`).join('')}</div>
+   <div class="setrail" id="rail">${SETS.filter(s=>s.game===game&&s.series===series).sort((a,b)=>a.date<b.date?-1:1).map(s=>`<button class="setchip" data-set="${s.code}" aria-pressed="${s.code===cur}"><small>${s.game==='wow'?s.abbr+' · '+s.year:s.code+' · '+new Date(s.date).toLocaleDateString('fr-FR',{month:'short',year:'numeric'})}</small><span>${esc(s.name)}</span><small>${own(s.code)}/${s.count} obtenues</small></button>`).join('')}</div>
    <div class="stage"><div>
      <div class="packs">${set.packs.map(p=>packHTML(set,p,set.packs.length>1,p===curPack)).join('')}</div>
      <div class="actions"><button class="btn" id="go">Ouvrir un booster</button><button class="btn ghost" id="go10">Ouvrir 10 boosters</button></div>
      <p class="hint">${set.packs.length>1?'Choisissez un booster, puis ouvrez-le.':'Touchez le booster pour l’ouvrir.'} ${(S.p[cur]||0)} ouvert${(S.p[cur]||0)>1?'s':''} dans cette extension.</p>
-   </div></div>`;
-  view.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>{if(game===b.dataset.game)return;game=b.dataset.game;series=lastSer(game);cur=lastIn(game,series);render()});
+   </div></div>${game==='wow'?wowSource():''}`;
+  bindGames();bindWowUp();
   view.querySelectorAll('[data-ser]').forEach(b=>b.onclick=()=>{series=b.dataset.ser;cur=lastIn(game,series);render()});
   const sp=view.querySelector('.serrow [aria-pressed="true"]');if(sp)sp.scrollIntoView({block:'nearest',inline:'nearest'});
   view.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{cur=b.dataset.set;render()});
@@ -353,7 +448,7 @@ function reveal(p,st){
   view.innerHTML=`<div class="stage"><div><div class="reveal" id="rv" tabindex="0" role="button" aria-label="Carte suivante"><div class="aura" id="aura"></div>${cards.map((c,k)=>`<div class="slot" style="z-index:${cards.length-k}">${cardHTML(c,{q:'high'})}${badge(st[k])}</div>`).join('')}</div>
    <div class="counter" id="ct"></div><div class="actions"><button class="btn ghost" id="skip">Tout voir</button></div>${p.rare?'<p class="hint">Booster rare !</p>':''}</div></div>`;
   const slots=[...view.querySelectorAll('.slot')], aura=document.getElementById('aura'), ct=document.getElementById('ct');
-  function upd(){ct.textContent=`Carte ${i+1} sur ${cards.length}`;const c=cards[i];aura.className='aura'+(isHit(c)?' on':'');aura.style.background=(c.r==='UR'||c.r==='SEC')?'#ffd257':(c.r==='S'||c.r==='SSR'||c.r==='SH')?'#b69bff':'#ffcf6a'}
+  function upd(){ct.textContent=`Carte ${i+1} sur ${cards.length}`;const c=cards[i];aura.className='aura'+(isHit(c)?' on':'');aura.style.background=c.w?(QC[c.r]||'#ffcf6a'):(c.r==='UR'||c.r==='SEC')?'#ffd257':(c.r==='S'||c.r==='SSR'||c.r==='SH')?'#b69bff':'#ffcf6a'}
   upd();
   const next=()=>{if(i>=cards.length-1)return summary(cards,st,1,p.rare);slots[i].classList.add('gone');i++;upd()};
   const rv=document.getElementById('rv');rv.onclick=next;rv.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();next()}};
@@ -378,13 +473,13 @@ function tilt(el){
   el.addEventListener('pointerleave',()=>el.querySelectorAll('.card').forEach(c=>c.style.transform=''));
 }
 function renderCol(){
-  if(!colSet)colSet=cur;
+  if(!colSet||!SETBY[colSet])colSet=cur&&SETBY[cur]?cur:SETS[0].code;
   const set=SETS.find(s=>s.code===colSet), list=BYSET[colSet]||[];
   const have=own(colSet), pct=list.length?Math.round(have/list.length*100):0;
   const RR_=RT(colSet);const rs=Object.keys(RR_).sort((a,b)=>RR_[a][1]-RR_[b][1]).filter(r=>list.some(c=>c.r===r));
   const shown=list.filter(c=>(colFilter==='all'||(colFilter==='own'?S.c[c.id]:!S.c[c.id]))&&(colRar==='all'||c.r===colRar));
   view.innerHTML=`
-   <div class="filters"><select id="cs" aria-label="Extension">${serOrder().map(([g,sr])=>`<optgroup label="${g==='tcg'?'JCC':'Pocket'} · ${esc(sr)}">${SETS.filter(s=>s.game===g&&s.series===sr).map(s=>`<option value="${s.code}"${s.code===colSet?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
+   <div class="filters"><select id="cs" aria-label="Extension">${serOrder().map(([g,sr])=>`<optgroup label="${GLBL[g]||g} · ${esc(sr)}">${SETS.filter(s=>s.game===g&&s.series===sr).map(s=>`<option value="${s.code}"${s.code===colSet?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
    <section class="prog"><h2>${esc(set.name)}</h2><div class="bar"><i style="width:${pct}%"></i></div>
     <div class="rbreak"><span><b>${have}/${list.length}</b> cartes (${pct} %)</span><span><b>${S.p[colSet]||0}</b> boosters ouverts</span>${rs.map(r=>{const t=list.filter(c=>c.r===r),o=t.filter(c=>S.c[c.id]).length;return `<span>${RR_[r][0]} <b>${o}/${t.length}</b></span>`}).join('')}</div></section>
    <div class="econ"><div><div class="bal">${fmt(S.m)} 🪙</div><label>Doublons : <select id="keep" aria-label="Vente automatique des doublons">${[[1,'garder 1 exemplaire'],[2,'garder 2 exemplaires'],[3,'garder 3 exemplaires'],[4,'garder 4 exemplaires'],[0,'ne jamais vendre']].map(([v,l])=>`<option value="${v}"${S.keep==v?' selected':''}>${l}</option>`).join('')}</select></label></div>${(()=>{const d=dupStock();return d.n?`<button class="btn ghost" id="sellall">Vendre ${d.n} doublon${d.n>1?'s':''} (+${fmt(d.v)} 🪙)</button>`:''})()}</div>
@@ -410,7 +505,7 @@ function renderCol(){
 const dlg=document.getElementById('dlg');
 function detail(c){
   const set=SETS.find(s=>s.code===c.set);
-  dlg.innerHTML=`<div id="dc">${cardHTML(c,{q:'high'})}</div><p class="meta"><b>${esc(c.name)}</b><br>${rl(c)} · ${esc(set.name)} ${String(c.num).padStart(3,'0')}<br>Exemplaires : <b>${S.c[c.id]||0}</b></p><div class="row">${(S.c[c.id]||0)>1?`<button class="btn ghost" id="sell1">Vendre 1 exemplaire (+${fmt(sellVal(c))} 🪙)</button>`:''}<button class="btn" id="dx">Fermer</button></div>`;
+  dlg.innerHTML=`<div id="dc">${cardHTML(c,{q:'high'})}</div><p class="meta"><b>${esc(c.name)}</b><br>${rl(c)} · ${esc(set.name)} ${String(c.num).padStart(3,'0')}${c.artist?`<br>Illustration : ${esc(c.artist)}`:''}<br>Exemplaires : <b>${S.c[c.id]||0}</b></p><div class="row">${(S.c[c.id]||0)>1?`<button class="btn ghost" id="sell1">Vendre 1 exemplaire (+${fmt(sellVal(c))} 🪙)</button>`:''}<button class="btn" id="dx">Fermer</button></div>`;
   dlg.showModal();tilt(document.getElementById('dc'));document.getElementById('dx').onclick=()=>dlg.close();
   const s1=document.getElementById('sell1');if(s1)s1.onclick=()=>{S.c[c.id]--;S.m+=sellVal(c);save();tally();detail(c);if(tab==='col')renderCol()};
 }
@@ -444,6 +539,7 @@ const tO=document.getElementById('tabOpen'),tC=document.getElementById('tabCol')
 tO.onclick=()=>{tab='open';tO.setAttribute('aria-selected','true');tC.setAttribute('aria-selected','false');render()};
 tC.onclick=()=>{tab='col';colSet=cur;tC.setAttribute('aria-selected','true');tO.setAttribute('aria-selected','false');render()};
 render();
+loadWow(false).then(r=>{if(!r.ok)return;if(game==='wow'&&!SETBY[cur]){series=lastSer('wow');cur=series?lastIn('wow',series):null}if((game==='wow'||tab==='col')&&!view.querySelector('#rv,.summary'))render()});
 })();
 </script>
 <script>

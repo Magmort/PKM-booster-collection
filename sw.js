@@ -1,8 +1,8 @@
 // Service worker : fonctionnement hors ligne et mise en cache des visuels
-const VERSION = 'v1';
+const VERSION = 'v2';
 const APP = 'app-' + VERSION;
 const IMG = 'img-v1';
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'Icons/icon-192.png', 'Icons/icon-512.png', 'Icons/icon-maskable-512.png'];
 const MAX_IMG = 2500;
 
 self.addEventListener('install', e => {
