@@ -189,7 +189,8 @@ const D=JSON.parse(document.getElementById('data').textContent);
 const SETS=D.sets, RATES=D.rates;
 const CARDS=D.cards.map(c=>({set:c[0],num:c[1],name:c[2],r:c[3],el:c[4],type:c[5],packs:c[6],isid:c[7],id:c[0]+'-'+c[1]}));
 const IMG_ENABLED=true;
-function imgUrl(c,lang,q){const s=SETBY[c.set];if(!s||!s.img)return null;const [ser,sid]=s.img.split('/');const num=typeof c.num==='number'?String(c.num).padStart(3,'0'):c.num;return `https://assets.tcgdex.net/${lang}/${ser}/${c.isid||sid}/${encodeURIComponent(num)}/${q}.webp`}
+function wowImg(c){const s=SETBY[c.set],w=s&&s.wimg;if(!w)return null;const n=String(c.num);return w.base+(/^\d+$/.test(n)&&w.pad?n.padStart(w.pad,'0'):n)+w.ext}
+function imgUrl(c,lang,q){if(c.w)return wowImg(c);const s=SETBY[c.set];if(!s||!s.img)return null;const [ser,sid]=s.img.split('/');const num=typeof c.num==='number'?String(c.num).padStart(3,'0'):c.num;return `https://assets.tcgdex.net/${lang}/${ser}/${c.isid||sid}/${encodeURIComponent(num)}/${q}.webp`}
 window.imgErr=function(im){if(im.hasAttribute('crossorigin')){im.removeAttribute('crossorigin');im.src=im.src;return}const en=im.dataset.en;if(en&&im.src!==en){im.dataset.en='';im.src=en;return}im.remove()};
 const BYSET={};CARDS.forEach(c=>(BYSET[c.set]=BYSET[c.set]||[]).push(c));
 const BYID={};CARDS.forEach(c=>BYID[c.id]=c);
@@ -226,12 +227,12 @@ function wowCardHTML(c){
   const art=`background:radial-gradient(circle at ${x}% ${y}%,hsl(${fh} 70% 62%/.75),transparent 42%),radial-gradient(circle at ${100-x}% ${95-y}%,hsl(${(fh+30)%360} 60% 45%/.6),transparent 50%),linear-gradient(160deg,hsl(${fh} 42% 30%),hsl(${fh} 45% 12%))`;
   const cls=['card','wow','q-'+c.r];if(c.r==='E'||c.r==='L')cls.push('holo');
   const st=c.hp?(c.atk!==''?`⚔ ${esc(c.atk)} · ♥ ${esc(c.hp)}`:`♥ ${esc(c.hp)}`):'';
-  const line=c.line||KINDW[c.kind]||'Carte';
+  const line=c.line||KINDW[c.kind]||'Carte', u=IMG_ENABLED&&S.img!==false?wowImg(c):null;
   return `<div class="${cls.join(' ')}" style="--q:${QC[c.r]||QC.C};--fh:${fh}" data-id="${c.id}">
    <div class="face"><div class="hd">${c.cost!==''?`<span class="cost">${esc(c.cost)}</span>`:''}<span class="nm">${esc(c.name)}</span></div>
    <div class="art" style="${art}"><div class="emb"><svg viewBox="0 0 24 24"><path d="${GLYPH[c.kind]||GLYPH.other}"/></svg></div>${f||c.cls?`<span class="fac">${esc([f?f[0]:'',c.cls].filter(Boolean).join(' · '))}</span>`:''}</div>
    <div class="kind">${esc(line)}</div>
-   <div class="ft"><span class="st">${st}</span><span class="rar">●<span style="color:#a99c7e">${String(c.num).padStart(3,'0')}</span></span></div></div></div>`;
+   <div class="ft"><span class="st">${st}</span><span class="rar">●<span style="color:#a99c7e">${String(c.num).padStart(3,'0')}</span></span></div></div>${u?`<img class="real" src="${u}" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add('hasimg')" onerror="this.remove()">`:''}</div>`;
 }
 function cardHTML(c,opts={}){
   if(c.w)return wowCardHTML(c);
@@ -270,7 +271,7 @@ function mergeWow(d){
   for(let i=SETS.length-1;i>=0;i--)if(SETS[i].game==='wow'){delete SETBY[SETS[i].code];delete BYSET[SETS[i].code];SETS.splice(i,1)}
   for(let i=CARDS.length-1;i>=0;i--)if(CARDS[i].w){delete BYID[CARDS[i].id];CARDS.splice(i,1)}
   if(!d||!Array.isArray(d.sets)||!Array.isArray(d.cards))return;
-  d.sets.forEach(s=>{if(s.raid)return;const code='WOW-'+s.slug,set={code,abbr:s.abbr||s.slug,name:s.name,en:s.en,date:s.date,year:s.year,series:s.block,packs:['Booster'],game:'wow',size:s.size||15};SETS.push(set);SETBY[code]=set;BYSET[code]=[]});
+  d.sets.forEach(s=>{if(s.raid)return;const code='WOW-'+s.slug,set={code,abbr:s.abbr||s.slug,name:s.name,en:s.en,date:s.date,year:s.year,series:s.block,packs:['Booster'],game:'wow',size:s.size||15,wimg:s.img&&s.img.base?s.img:null};SETS.push(set);SETBY[code]=set;BYSET[code]=[]});
   d.cards.forEach(a=>{const code='WOW-'+a[0];if(!BYSET[code]||SETBY[code].game!=='wow')return;const c={w:1,set:code,num:a[1],name:a[2],r:a[3],kind:a[4],fac:a[5],cls:a[6],cost:a[7],atk:a[8],hp:a[9],line:a[10],school:a[11],artist:a[12],packs:[],type:'wow',id:code+'-'+a[1]};CARDS.push(c);BYSET[code].push(c);BYID[c.id]=c});
   for(let i=SETS.length-1;i>=0;i--){const s=SETS[i];if(s.game!=='wow')continue;s.count=BYSET[s.code].length;if(!s.count){delete SETBY[s.code];delete BYSET[s.code];SETS.splice(i,1)}}
   wowInfo={updated:d.updated||''};
@@ -488,7 +489,7 @@ function renderCol(){
     <select id="cr" aria-label="Rareté"><option value="all">Toutes les raretés</option>${rs.map(r=>`<option value="${r}"${colRar===r?' selected':''}>${RR_[r][0]}</option>`).join('')}</select>
    </div>
    <div class="grid">${shown.map(c=>S.c[c.id]?`<button class="cell" data-id="${c.id}" aria-label="${esc(c.name)}">${cardHTML(c)}${S.c[c.id]>1?`<span class="qty">×${S.c[c.id]}</span>`:''}</button>`:`<button class="cell miss" data-buy="${c.id}" aria-label="Acheter la carte ${String(c.num).padStart(3,'0')}"><div class="empty${S.m>=buyVal(c)?' afford':''}"><div>${String(c.num).padStart(3,'0')}<small>${rl(c)}</small><b class="price">${fmt(buyVal(c))} 🪙</b></div></div></button>`).join('')||'<p class="hint">Aucune carte ne correspond à ces filtres.</p>'}</div>
-   ${IMG_ENABLED?`<div class="econ"><label><input type="checkbox" id="imgt"${S.img!==false?' checked':''}> Afficher les visuels officiels (TCGdex)</label></div>`:''}<div class="actions"><button class="btn ghost" id="exp">Exporter la collection</button><button class="btn ghost" id="imp">Importer une collection</button><button class="btn ghost" id="reset">Réinitialiser la collection</button></div><input type="file" id="impf" accept="application/json,.json" hidden>`;
+   ${IMG_ENABLED?`<div class="econ"><label><input type="checkbox" id="imgt"${S.img!==false?' checked':''}> Afficher les visuels officiels des cartes</label></div>`:''}<div class="actions"><button class="btn ghost" id="exp">Exporter la collection</button><button class="btn ghost" id="imp">Importer une collection</button><button class="btn ghost" id="reset">Réinitialiser la collection</button></div><input type="file" id="impf" accept="application/json,.json" hidden>`;
   document.getElementById('cs').onchange=e=>{colSet=e.target.value;colRar='all';render()};
   document.getElementById('cr').onchange=e=>{colRar=e.target.value;render()};
   view.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{colFilter=b.dataset.f;render()});

@@ -9,6 +9,7 @@ Application web installable (PWA) pour simuler l'ouverture de boosters Pokémon
 - Cartes World of Warcraft : liste récupérée sur WoWTCGFR (https://wowtcgfr.com) chaque semaine
   par la GitHub Action « Mise à jour des cartes WoW » (fichier `data/wow-cards.json`).
   On peut aussi la lancer à la main depuis l'onglet Actions (bouton « Run workflow »).
+  Les visuels des cartes WoW sont chargés depuis WoWTCGFR quand ils sont disponibles.
 
 Données : pokemon-tcg-pocket-database (flibustier), TCGdex, PokeAPI, WoWTCGFR.
 Projet personnel non commercial. Pokémon et les visuels des cartes sont la propriété
