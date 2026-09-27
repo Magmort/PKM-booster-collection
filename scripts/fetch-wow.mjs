@@ -120,6 +120,7 @@ function parseSet(html) {
     return false;
   });
   const cards = [], seen = new Set();
+  let sample = null; // numéro (tel qu'affiché) de la plus petite carte, pour repérer le format des images
   $('tr').each((_, tr) => {
     const td = $(tr).find('td');
     if (td.length < 5) return;
@@ -130,11 +131,26 @@ function parseSet(html) {
     const name = clean($(td[col.name]).text());
     if (!name) return;
     seen.add(num);
+    if (/^\d+$/.test(numT) && (!sample || +numT < +sample)) sample = numT;
     const ty = parseType($, td[col.type]);
     cards.push([num, name, rarity($(td[col.rar]).text()), ty.kind, ty.fac, ty.cls,
       clean($(td[col.cost]).text()), ty.atk, ty.hp, ty.line, ty.school, clean($(td[col.artist]).text())]);
   });
+  cards.sample = sample;
   return cards;
+}
+
+// ---------- format des images : lu sur la page d'une carte ----------
+// ex. https://wowtcgfr.com/cartes/hoa/35.jpg → { base: 'https://wowtcgfr.com/cartes/hoa/', pad: 0, ext: '.jpg' }
+function parseImg(html, numT) {
+  const $ = load(html);
+  let src = '';
+  $('img').each((_, el) => { const u = $(el).attr('src') || ''; if (/\/cartes\//.test(u)) { src = u; return false; } });
+  if (!src) return null;
+  const url = new URL(src, BASE).href;
+  const m = url.match(/^(.*\/)([^/]+?)(\.[a-z0-9]+)(\?.*)?$/i);
+  if (!m || +m[2] !== +numT) return null;
+  return { base: m[1], pad: m[2].startsWith('0') ? m[2].length : 0, ext: m[3] };
 }
 
 // ---------- programme principal ----------
@@ -159,10 +175,17 @@ for (const s of list) {
   }
   if (!got.length) continue;
   const k = KNOWN[s.slug] || {};
+  let img = old && (old.sets.find(o => o.slug === s.slug) || {}).img || null;
+  if (got.sample) {
+    if (!LOCAL) await sleep(2500);
+    const page = await get(`/carte/edition/${s.slug}/fr/${got.sample}`).catch(() => null);
+    const found = page && parseImg(page, got.sample);
+    if (found) img = found; else console.warn(`${s.slug} : format des images introuvable${img ? ', ancien conservé' : ''}`);
+  }
   sets.push({
     slug: s.slug, name: s.name || k.en || s.slug, en: k.en || '', abbr: k.abbr || s.slug.slice(0, 3).toUpperCase(),
     year: s.year, date: k.date || `${s.year}-12-01`, block: k.block || `Extensions ${s.year}`,
-    size: k.size || 18, raid: !!(k.raid || s.announced < 60), count: got.length,
+    size: k.size || 18, raid: !!(k.raid || s.announced < 60), count: got.length, img,
   });
   got.forEach(c => cards.push([s.slug, ...c]));
   console.log(`${s.slug} : ${got.length} cartes`);
