@@ -1,4 +1,4 @@
-name: Mise à jour des cartes WoW et Hearthstone
+name: Mise à jour des cartes WoW, Hearthstone et Lorcana
 
 on:
   schedule:
@@ -22,14 +22,17 @@ jobs:
         run: node scripts/fetch-wow.mjs
       - name: Récupérer les cartes Hearthstone (HearthSim)
         run: node scripts/fetch-hs.mjs
+      - name: Récupérer les cartes Lorcana (LorcanaJSON)
+        continue-on-error: true
+        run: node scripts/fetch-lorcana.mjs
       - name: Enregistrer les changements
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add data/wow-cards.json data/hs-cards.json
+          git add data
           if git diff --cached --quiet; then
             echo "Aucune nouveauté."
           else
-            git commit -m "Mise à jour des cartes WoW et Hearthstone"
+            git commit -m "Mise à jour des cartes WoW, Hearthstone et Lorcana"
             git push
           fi
