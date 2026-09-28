@@ -1,5 +1,5 @@
 // Service worker : fonctionnement hors ligne et mise en cache des visuels
-const VERSION = 'v14';
+const VERSION = 'v15';
 const APP = 'app-' + VERSION;
 const IMG = 'img-v1';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'Icons/icon-192.png', 'Icons/icon-512.png', 'Icons/icon-maskable-512.png'];
