@@ -1,5 +1,5 @@
 // Service worker : fonctionnement hors ligne et mise en cache des visuels
-const VERSION = 'v9';
+const VERSION = 'v11';
 const APP = 'app-' + VERSION;
 const IMG = 'img-v1';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'Icons/icon-192.png', 'Icons/icon-512.png', 'Icons/icon-maskable-512.png'];
@@ -27,7 +27,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
 
   // Visuels des cartes : cache d'abord, réseau ensuite
-  if (url.hostname === 'assets.tcgdex.net') {
+  if (url.hostname === 'assets.tcgdex.net' || url.hostname === 'art.hearthstonejson.com') {
     e.respondWith(caches.open(IMG).then(async c => {
       const hit = await c.match(req);
       if (hit) return hit;
