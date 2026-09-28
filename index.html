@@ -69,6 +69,16 @@ nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accen
 .pack.small .label{inset:52px 12px 18px}.pack.small .label h3{font-size:1.1rem}
 .packs:has(.small:nth-child(3)) {gap:10px}
 @media (max-width:520px){.pack.small{width:104px;height:176px}.pack.small .label{inset:40px 8px 12px}.pack.small .label h3{font-size:.85rem}.pack.small .label .pk{font-size:.8rem}.pack.small .label .code{font-size:.65rem}.pack.small .top{height:34px}.pack.small .ring{width:110px;height:110px;top:70px;border-width:12px}}
+.pack .pimg,.pack .ptop{display:none}
+.pack.hasart .body,.pack.hasart .label{visibility:hidden}
+.pack.hasart .pimg{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:fill;clip-path:inset(14% 0 0 0);pointer-events:none}
+.pack.hasart .top{height:14%;background:none;clip-path:none;overflow:hidden;border-radius:0}
+.pack.hasart .top::after{left:12%;right:2%;border-bottom-color:rgba(255,255,255,.75)}
+.pack.hasart .ptop{display:block;position:absolute;left:0;top:0;width:100%;height:714.3%;object-fit:fill;pointer-events:none}
+.pack .plogo{display:none}
+.pack.haslogo .plogo{display:block;width:100%;max-height:34%;object-fit:contain;object-position:left center;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))}
+.pack.haslogo .label h3{display:none}
+.pack .psym{height:1.1em;width:auto;vertical-align:-.2em;margin-right:5px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
 .pack.tearing .top{transform:translate(60px,-80px) rotate(18deg);opacity:0}
 .pack.tearing{animation:shake .3s}
 @keyframes sheen{0%,100%{background-position:120% 0,0 0,0 0}50%{background-position:-20% 0,0 0,0 0}}
@@ -642,11 +652,29 @@ function packHue(code,pack){
     hueCache[code]=map}
   return hueCache[code][pack]!==undefined?hueCache[code][pack]:packHuePref(code,pack);
 }
+/* Visuels officiels des boosters : image du booster (Pocket) ou logo d'extension (JCC classique), chargés à l'affichage */
+const PACK_IMG_BASE='https://cdn.jsdelivr.net/gh/flibustier/pokemon-tcg-pocket-database@main/dist/images/packs/';
+const PACK_IMG_FIX={B4a:'Team Rocket'};
+function packImgUrl(set,pack){if(set.game!=='pocket')return null;const n=PACK_IMG_FIX[set.code]||pack;return n?PACK_IMG_BASE+encodeURIComponent(n)+'.webp':null}
+function packArt(set,pack,top){
+  if(!IMG_ENABLED||S.img===false)return '';const u=packImgUrl(set,pack);if(!u)return '';
+  return top?`<img class="ptop" src="${u}" alt="" aria-hidden="true">`:`<img class="pimg" src="${u}" alt="" onload="this.closest('.pack').classList.add('hasart')" onerror="const p=this.closest('.pack');if(p)p.querySelectorAll('.pimg,.ptop').forEach(x=>x.remove())">`;
+}
+function tcgdexSet(set){if(set.game!=='tcg'||!set.img)return null;return set.img.split('/')}
+function setLogo(set){
+  if(!IMG_ENABLED||S.img===false)return '';const t=tcgdexSet(set);if(!t)return '';
+  const [ser,sid]=t, fr=`https://assets.tcgdex.net/fr/${ser}/${sid}/logo.webp`, en=`https://assets.tcgdex.net/en/${ser}/${sid}/logo.webp`;
+  return `<img class="plogo" src="${fr}" alt="" data-en="${en}" onload="this.closest('.pack').classList.add('haslogo')" onerror="if(this.dataset.en){this.src=this.dataset.en;this.dataset.en=''}else this.remove()">`;
+}
+function setSymbol(set){
+  if(!IMG_ENABLED||S.img===false)return '';const t=tcgdexSet(set);if(!t)return '';
+  return `<img class="psym" src="https://assets.tcgdex.net/univ/${t[0]}/${t[1]}/symbol.webp" alt="" onerror="this.remove()">`;
+}
 function packHTML(set,pack,small,pressed){
   const multi=set.packs.length>1;
   return `<button class="pack${small?' small':''}" style="--h:${packHue(set.code,multi?pack:null)}" data-pack="${esc(pack)}" aria-pressed="${pressed}" aria-label="Booster ${esc(set.name)}${multi?' '+esc(pk(pack)):''}">
-   <span class="body"><span class="ring"></span></span><span class="top"></span>
-   <span class="label"><span class="code">${set.abbr||set.code} · ${set.count} cartes</span><h3>${esc(set.name)}</h3><span class="pk">${multi?esc(pk(pack)):(set.game==='wow'||set.game==='hs'||set.game==='lor'?set.size+' cartes par booster':set.game==='tcg'?(RATES[set.code]['Regular Pack'].cards+' cartes par booster'):'Booster')}</span></span></button>`;
+   <span class="body"><span class="ring"></span></span><span class="top">${packArt(set,pack,true)}</span>${packArt(set,pack,false)}
+   <span class="label"><span class="code">${setSymbol(set)}${set.abbr||set.code} · ${set.count} cartes</span>${setLogo(set)}<h3>${esc(set.name)}</h3><span class="pk">${multi?esc(pk(pack)):(set.game==='wow'||set.game==='hs'||set.game==='lor'?set.size+' cartes par booster':set.game==='tcg'?(RATES[set.code]['Regular Pack'].cards+' cartes par booster'):'Booster')}</span></span></button>`;
 }
 function tally(){
   const u=Object.keys(S.c).length;document.getElementById('tPacks').innerHTML=`<b>${S.t}</b> booster${S.t>1?'s':''} ouvert${S.t>1?'s':''}`;document.getElementById('tCards').innerHTML=`<b>${u}</b> carte${u>1?'s':''} unique${u>1?'s':''}`;document.getElementById('tMoney').innerHTML=`<b>${fmt(S.m)}</b> 🪙`;
