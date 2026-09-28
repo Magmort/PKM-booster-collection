@@ -216,6 +216,10 @@ dialog .meta b{color:var(--ink)}
 .wpc.chosen{z-index:2}
 .wpc.chosen .ff .card{outline:3px solid var(--accent);outline-offset:3px}
 .wpc.other{opacity:.5}
+.ptags{position:absolute;left:4px;bottom:4px;z-index:5;display:flex;flex-wrap:wrap;gap:2px;max-width:calc(100% - 34px);pointer-events:none}
+.ptag{font-size:.58rem;font-weight:800;line-height:1.5;color:#fff;padding:0 6px;border-radius:99px;background:hsl(var(--h) 65% 42%);box-shadow:0 1px 3px rgba(0,0,0,.3);white-space:nowrap}
+.pdot{display:inline-block;width:.7em;height:.7em;border-radius:50%;background:hsl(var(--h) 65% 48%);margin-right:5px}
+.packprog{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 .owned{position:absolute;top:-8px;right:-8px;z-index:6;width:26px;height:26px;display:grid;place-items:center;background:#1f9d55;color:#fff;font-weight:900;font-size:.85rem;border-radius:50%;border:2px solid var(--bg);box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .flip:not(.open) .owned{opacity:0}
 /* succès et stats */
@@ -368,12 +372,22 @@ const norm=x=>{x.st=Object.assign(STB(),x.st||{});x.ach=x.ach||{};return x};
 let S=BLANK();
 const LK='booster-sim-v1';
 try{const j=localStorage.getItem(LK);if(j)S=norm(Object.assign(BLANK(),JSON.parse(j)))}catch(e){}
-let dbDoc=null,saveT=null;
+let dbDoc=null,saveT=null,revealing=false;
 function save(){
   S.u=Date.now();
   try{localStorage.setItem(LK,JSON.stringify(S))}catch(e){}
   clearTimeout(saveT);
   if(dbDoc)saveT=setTimeout(()=>dbDoc.set(S).then(()=>setSync('synchronisée')).catch(()=>setSync('hors ligne')),900);
+}
+function mergeState(a,b){
+  const newer=(b.u||0)>(a.u||0)?b:a, r=norm(Object.assign(BLANK(),JSON.parse(JSON.stringify(newer))));
+  const mx=(x,y)=>{const o={};for(const k of new Set([...Object.keys(x||{}),...Object.keys(y||{})]))o[k]=Math.max((x||{})[k]||0,(y||{})[k]||0);return o};
+  r.c=mx(a.c,b.c);r.p=mx(a.p,b.p);r.t=Math.max(a.t||0,b.t||0);r.u=Math.max(a.u||0,b.u||0);
+  r.ach={};for(const k of new Set([...Object.keys(a.ach||{}),...Object.keys(b.ach||{})]))r.ach[k]=Math.min((a.ach||{})[k]||Infinity,(b.ach||{})[k]||Infinity);
+  const sa=a.st||{},sb=b.st||{};for(const k of Object.keys(STB()))if(k!=='best')r.st[k]=Math.max(sa[k]||0,sb[k]||0);
+  const seen=new Set();r.st.best=[...(sa.best||[]),...(sb.best||[])].filter(x=>x&&!seen.has(x.id)&&seen.add(x.id)).sort((x,y)=>y.t-x.t).slice(0,12);
+  if(a!==newer&&(a.t||0)>0&&(b.t||0)>0)r.m=Math.max(a.m||0,b.m||0);
+  return r;
 }
 function setSync(t){document.getElementById('sync').textContent=t?'· '+t:''}
 (async()=>{
@@ -384,7 +398,8 @@ function setSync(t){document.getElementById('sync').textContent=t?'· '+t:''}
     const uid=await user.id(); if(!uid)return;
     dbDoc=db.doc('data/users/'+uid+'/collection');
     const snap=await dbDoc.get();
-    if(snap.exists){const d=snap.data()||{};if((d.u||0)>=(S.u||0)||!S.u){S=norm(Object.assign(BLANK(),d));try{localStorage.setItem(LK,JSON.stringify(S))}catch(e){}render()}else save()}
+    if(snap.exists){const d=norm(Object.assign(BLANK(),snap.data()||{}));S=mergeState(S,d);save();
+      if(revealing||tab!=='open'&&tab!=='col'||view.querySelector('#rv,.summary'))tally();else render()}
     else if(S.t>0)save();
     setSync('synchronisée');
   }catch(e){dbDoc=null}
@@ -450,12 +465,25 @@ const lastIn=(g,sr)=>{const l=[...SETS].filter(s=>s.game===g&&s.series===sr).sor
 const lastSer=g=>{const l=serOrder().filter(x=>x[0]===g);return l.length?l[l.length-1][1]:null};
 const GAMES=[['pocket','Pocket'],['tcg','JCC classique'],['wow','WoW']], GLBL={pocket:'Pocket',tcg:'JCC',wow:'WoW'};
 let game='pocket', series=lastSer('pocket'), tab='open', cur=lastIn('pocket',series), curPack=null, colSet=null, colFilter='all', colRar='all';
-function packHue(code,pack){
+function packHuePref(code,pack){
   if(gameOf(code)==='wow'){const s=(SETBY[code]||{}).series||'';return /Azeroth/.test(s)?36:/Burning/.test(s)?105:hash(code)%360}
-  const pool=poolFor(code,pack).filter(c=>rank(c)>=4&&c.el);
-  const cnt={};pool.forEach(c=>cnt[c.el]=(cnt[c.el]||0)+1);
+  const set=SETBY[code]||{packs:[]}, all=poolFor(code,pack);
+  if(set.packs.length>1){const nm=pk(pack).toLowerCase();const m=(BYSET[code]||[]).find(c=>c.el&&c.name.toLowerCase().startsWith(nm));if(m)return EL[m.el][3]}
+  const excl=set.packs.length>1?all.filter(c=>c.el&&c.packs.length&&c.packs.filter(x=>set.packs.includes(x)).length===1):[];
+  const pool=(excl.length?excl:all).filter(c=>c.el&&(excl.length||rank(c)>=4));
+  const cnt={};pool.forEach(c=>cnt[c.el]=(cnt[c.el]||0)+(rank(c)>=4?3:1));
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
-  return top?EL[top[0]][3]:hash(code)%360;
+  return top?EL[top[0]][3]:hash(code+pack)%360;
+}
+const hueCache={};
+function packHue(code,pack){
+  const set=SETBY[code];
+  if(!set||set.packs.length<2||gameOf(code)==='wow')return packHuePref(code,pack);
+  if(!hueCache[code]){const used=[],map={};const d=(a,b)=>{const x=Math.abs(a-b)%360;return Math.min(x,360-x)};
+    const gap=Math.min(32,Math.floor(300/set.packs.length));
+    set.packs.forEach(p=>{const h0=packHuePref(code,p);let hv=h0;for(let n=1;used.some(u=>d(u,hv)<gap)&&n<40;n++)hv=((h0+(n%2?1:-1)*Math.ceil(n/2)*12)%360+360)%360;used.push(hv);map[p]=hv});
+    hueCache[code]=map}
+  return hueCache[code][pack]!==undefined?hueCache[code][pack]:packHuePref(code,pack);
 }
 function packHTML(set,pack,small,pressed){
   const multi=set.packs.length>1;
@@ -509,6 +537,7 @@ function renderOpen(){
 }
 function own(code){return (BYSET[code]||[]).reduce((a,c)=>a+(S.c[c.id]?1:0),0)}
 function start(n){
+  revealing=true;
   const set=SETS.find(s=>s.code===cur), pack=set.packs.length>1?curPack:null;
   const packs=[];for(let i=0;i<n;i++)packs.push(openPack(cur,pack));
   const all=packs.flatMap(p=>p.cards);
@@ -556,6 +585,7 @@ function reveal(p,st,seq){
   tilt(rv);rv.focus({preventScroll:true});
 }
 function summary(cards,st,n,rare,quiet){
+  revealing=false;
   const items=cards.map((c,k)=>({c,s:st[k]})), sorted=n>1?[...items].sort((a,b)=>best(b.c)-best(a.c)):items;
   const nNew=st.filter(x=>x==='new').length, gain=st.reduce((a,x)=>a+(typeof x==='number'?x:0),0), nSold=st.filter(x=>typeof x==='number').length;
   const hits=cards.filter(isHit).length;
@@ -576,25 +606,33 @@ function tilt(el){
   el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect();const mx=(e.clientX-r.left)/r.width*100,my=(e.clientY-r.top)/r.height*100;el.querySelectorAll('.card').forEach(c=>{c.style.setProperty('--mx',mx);c.style.setProperty('--my',my);c.style.transform=`perspective(700px) rotateY(${(mx-50)/6}deg) rotateX(${(50-my)/6}deg)`})});
   el.addEventListener('pointerleave',()=>el.querySelectorAll('.card').forEach(c=>{c.style.transform='';c.style.removeProperty('--mx');c.style.removeProperty('--my')}));
 }
+function cardPacks(c){const s=SETBY[c.set];if(!s||s.game!=='pocket'||s.packs.length<2)return null;const p=(c.packs||[]).filter(x=>s.packs.includes(x));return p.length&&p.length<s.packs.length?p:[]}
+function packTags(c){const p=cardPacks(c);if(!p||!p.length)return '';return `<span class="ptags">${p.map(x=>`<span class="ptag" style="--h:${packHue(c.set,x)}">${esc(pk(x))}</span>`).join('')}</span>`}
+function packLine(c){const p=cardPacks(c);if(!p)return '';return `<br>Booster : <b>${p.length?p.map(x=>esc(pk(x))).join(', '):'tous les boosters de l’extension'}</b>`}
+let colPack='all';
 function renderCol(){
   if(!colSet||!SETBY[colSet])colSet=cur&&SETBY[cur]?cur:SETS[0].code;
   const set=SETS.find(s=>s.code===colSet), list=BYSET[colSet]||[];
   const have=own(colSet), pct=list.length?Math.round(have/list.length*100):0;
   const RR_=RT(colSet);const rs=Object.keys(RR_).sort((a,b)=>RR_[a][1]-RR_[b][1]).filter(r=>list.some(c=>c.r===r));
-  const shown=list.filter(c=>(colFilter==='all'||(colFilter==='own'?S.c[c.id]:!S.c[c.id]))&&(colRar==='all'||c.r===colRar));
+  const multi=set.game==='pocket'&&set.packs.length>1;if(!multi||!set.packs.includes(colPack))colPack='all';
+  const inPack=colPack!=='all'?new Set(poolFor(colSet,colPack).map(c=>c.id)):null;
+  const shown=list.filter(c=>(colFilter==='all'||(colFilter==='own'?S.c[c.id]:!S.c[c.id]))&&(colRar==='all'||c.r===colRar)&&(!inPack||inPack.has(c.id)));
+  const packProg=multi?`<div class="rbreak packprog">${set.packs.map(p=>{const pl=poolFor(colSet,p),o=pl.filter(c=>S.c[c.id]).length;return `<span><i class="pdot" style="--h:${packHue(colSet,p)}"></i>${esc(pk(p))} <b>${o}/${pl.length}</b></span>`}).join('')}</div>`:'';
   view.innerHTML=`
    <div class="filters"><select id="cs" aria-label="Extension">${serOrder().map(([g,sr])=>`<optgroup label="${GLBL[g]||g} · ${esc(sr)}">${SETS.filter(s=>s.game===g&&s.series===sr).map(s=>`<option value="${s.code}"${s.code===colSet?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`).join('')}</select></div>
    <section class="prog"><h2>${esc(set.name)}</h2><div class="bar"><i style="width:${pct}%"></i></div>
-    <div class="rbreak"><span><b>${have}/${list.length}</b> cartes (${pct} %)</span><span><b>${S.p[colSet]||0}</b> boosters ouverts</span>${rs.map(r=>{const t=list.filter(c=>c.r===r),o=t.filter(c=>S.c[c.id]).length;return `<span>${RR_[r][0]} <b>${o}/${t.length}</b></span>`}).join('')}</div></section>
+    <div class="rbreak"><span><b>${have}/${list.length}</b> cartes (${pct} %)</span><span><b>${S.p[colSet]||0}</b> boosters ouverts</span>${rs.map(r=>{const t=list.filter(c=>c.r===r),o=t.filter(c=>S.c[c.id]).length;return `<span>${RR_[r][0]} <b>${o}/${t.length}</b></span>`}).join('')}</div>${packProg}</section>
    <div class="econ"><div><div class="bal">${fmt(S.m)} 🪙</div><label>Doublons : <select id="keep" aria-label="Vente automatique des doublons">${[[1,'garder 1 exemplaire'],[2,'garder 2 exemplaires'],[3,'garder 3 exemplaires'],[4,'garder 4 exemplaires'],[0,'ne jamais vendre']].map(([v,l])=>`<option value="${v}"${S.keep==v?' selected':''}>${l}</option>`).join('')}</select></label></div>${(()=>{const d=dupStock();return d.n?`<button class="btn ghost" id="sellall">Vendre ${d.n} doublon${d.n>1?'s':''} (+${fmt(d.v)} 🪙)</button>`:''})()}</div>
    <div class="filters">
     ${[['all','Toutes'],['own','Obtenues'],['miss','Manquantes']].map(([k,l])=>`<button class="pill" data-f="${k}" aria-pressed="${colFilter===k}">${l}</button>`).join('')}
-    <select id="cr" aria-label="Rareté"><option value="all">Toutes les raretés</option>${rs.map(r=>`<option value="${r}"${colRar===r?' selected':''}>${RR_[r][0]}</option>`).join('')}</select>
+    ${multi?`<select id="cpk" aria-label="Booster"><option value="all">Tous les boosters</option>${set.packs.map(p=>`<option value="${esc(p)}"${colPack===p?' selected':''}>Booster ${esc(pk(p))}</option>`).join('')}</select>`:''}<select id="cr" aria-label="Rareté"><option value="all">Toutes les raretés</option>${rs.map(r=>`<option value="${r}"${colRar===r?' selected':''}>${RR_[r][0]}</option>`).join('')}</select>
    </div>
-   <div class="grid">${shown.map(c=>S.c[c.id]?`<button class="cell" data-id="${c.id}" aria-label="${esc(c.name)}">${cardHTML(c)}${S.c[c.id]>1?`<span class="qty">×${S.c[c.id]}</span>`:''}</button>`:`<button class="cell miss" data-buy="${c.id}" aria-label="Acheter la carte ${String(c.num).padStart(3,'0')}"><div class="empty${S.m>=buyVal(c)?' afford':''}"><div>${String(c.num).padStart(3,'0')}<small>${rl(c)}</small><b class="price">${fmt(buyVal(c))} 🪙</b></div></div></button>`).join('')||'<p class="hint">Aucune carte ne correspond à ces filtres.</p>'}</div>
+   <div class="grid">${shown.map(c=>S.c[c.id]?`<button class="cell" data-id="${c.id}" aria-label="${esc(c.name)}">${cardHTML(c)}${S.c[c.id]>1?`<span class="qty">×${S.c[c.id]}</span>`:''}${packTags(c)}</button>`:`<button class="cell miss" data-buy="${c.id}" aria-label="Acheter la carte ${String(c.num).padStart(3,'0')}"><div class="empty${S.m>=buyVal(c)?' afford':''}"><div>${String(c.num).padStart(3,'0')}<small>${rl(c)}</small><b class="price">${fmt(buyVal(c))} 🪙</b></div></div>${packTags(c)}</button>`).join('')||'<p class="hint">Aucune carte ne correspond à ces filtres.</p>'}</div>
    ${IMG_ENABLED?`<div class="econ"><label><input type="checkbox" id="imgt"${S.img!==false?' checked':''}> Afficher les visuels officiels des cartes</label></div>`:''}<div class="actions"><button class="btn ghost" id="exp">Exporter la collection</button><button class="btn ghost" id="imp">Importer une collection</button><button class="btn ghost" id="reset">Réinitialiser la collection</button></div><input type="file" id="impf" accept="application/json,.json" hidden>`;
-  document.getElementById('cs').onchange=e=>{colSet=e.target.value;colRar='all';render()};
+  document.getElementById('cs').onchange=e=>{colSet=e.target.value;colRar='all';colPack='all';render()};
   document.getElementById('cr').onchange=e=>{colRar=e.target.value;render()};
+  const cpk=document.getElementById('cpk');if(cpk)cpk.onchange=e=>{colPack=e.target.value;render()};
   view.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{colFilter=b.dataset.f;render()});
   view.querySelectorAll('.cell[data-id]').forEach(b=>b.onclick=()=>detail(BYID[b.dataset.id]));
   document.getElementById('reset').onclick=confirmReset;
@@ -609,7 +647,7 @@ function renderCol(){
 const dlg=document.getElementById('dlg');
 function detail(c){
   const set=SETS.find(s=>s.code===c.set);
-  dlg.innerHTML=`<div id="dc">${cardHTML(c,{q:'high'})}</div><p class="meta"><b>${esc(c.name)}</b><br>${rl(c)} · ${esc(set.name)} ${String(c.num).padStart(3,'0')}${c.artist?`<br>Illustration : ${esc(c.artist)}`:''}<br>Exemplaires : <b>${S.c[c.id]||0}</b></p><div class="row">${(S.c[c.id]||0)>1?`<button class="btn ghost" id="sell1">Vendre 1 exemplaire (+${fmt(sellVal(c))} 🪙)</button>`:''}<button class="btn" id="dx">Fermer</button></div>`;
+  dlg.innerHTML=`<div id="dc">${cardHTML(c,{q:'high'})}</div><p class="meta"><b>${esc(c.name)}</b><br>${rl(c)} · ${esc(set.name)} ${String(c.num).padStart(3,'0')}${packLine(c)}${c.artist?`<br>Illustration : ${esc(c.artist)}`:''}<br>Exemplaires : <b>${S.c[c.id]||0}</b></p><div class="row">${(S.c[c.id]||0)>1?`<button class="btn ghost" id="sell1">Vendre 1 exemplaire (+${fmt(sellVal(c))} 🪙)</button>`:''}<button class="btn" id="dx">Fermer</button></div>`;
   dlg.showModal();tilt(document.getElementById('dc'));document.getElementById('dx').onclick=()=>dlg.close();
   const s1=document.getElementById('sell1');if(s1)s1.onclick=()=>{S.c[c.id]--;S.m+=sellVal(c);S.st.earned+=sellVal(c);save();tally();detail(c);if(tab==='col')renderCol()};
 }
@@ -627,7 +665,7 @@ function confirmImport(d){
 }
 function buy(c){
   const set=SETS.find(s=>s.code===c.set), p=buyVal(c), ok=S.m>=p;
-  dlg.innerHTML=`<div id="dc">${cardHTML(c,{q:'high'})}</div><p class="meta"><b>${esc(c.name)}</b><br>${rl(c)} · ${esc(set.name)} ${String(c.num).padStart(3,'0')}<br>Prix : <b>${fmt(p)} 🪙</b> · Solde : <b>${fmt(S.m)} 🪙</b>${ok?'':`<br>Il vous manque ${fmt(p-S.m)} 🪙.`}</p><div class="row"><button class="btn ghost" id="dx">Annuler</button><button class="btn" id="bb"${ok?'':' disabled'}>Acheter pour ${fmt(p)} 🪙</button></div>`;
+  dlg.innerHTML=`<div id="dc">${cardHTML(c,{q:'high'})}</div><p class="meta"><b>${esc(c.name)}</b><br>${rl(c)} · ${esc(set.name)} ${String(c.num).padStart(3,'0')}${packLine(c)}<br>Prix : <b>${fmt(p)} 🪙</b> · Solde : <b>${fmt(S.m)} 🪙</b>${ok?'':`<br>Il vous manque ${fmt(p-S.m)} 🪙.`}</p><div class="row"><button class="btn ghost" id="dx">Annuler</button><button class="btn" id="bb"${ok?'':' disabled'}>Acheter pour ${fmt(p)} 🪙</button></div>`;
   dlg.showModal();tilt(document.getElementById('dc'));
   document.getElementById('dx').onclick=()=>dlg.close();
   document.getElementById('bb').onclick=()=>{if(S.m<p)return;S.m-=p;S.st.spent+=p;S.st.bought++;S.c[c.id]=1;save();dlg.close();checkAch();render()};
@@ -816,7 +854,7 @@ function wpPick(el,els){
 }
 
 function render(){tally();({open:renderOpen,col:renderCol,wp:renderWp,ach:renderAch}[tab]||renderOpen)()}
-document.querySelectorAll('nav.tabs [data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;if(tab==='col')colSet=cur;if(tab==='wp'&&!wpState.busy)wpState.offer=null;document.querySelectorAll('nav.tabs [data-tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));render();window.scrollTo({top:0})});
+document.querySelectorAll('nav.tabs [data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;revealing=false;if(tab==='col')colSet=cur;if(tab==='wp'&&!wpState.busy)wpState.offer=null;document.querySelectorAll('nav.tabs [data-tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));render();window.scrollTo({top:0})});
 render();checkAch();
 loadWow(false).then(r=>{if(!r.ok)return;if(game==='wow'&&!SETBY[cur]){series=lastSer('wow');cur=series?lastIn('wow',series):null}if((game==='wow'||tab==='col')&&!view.querySelector('#rv,.summary'))render();checkAch()});
 })();
