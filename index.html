@@ -151,6 +151,24 @@ nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accen
 .card.hs .real{object-fit:contain}
 .cell:has(.card.hs){container-type:inline-size}
 .cell .card.hs{--w:100cqw}
+.card.lor{--fh:215;background:linear-gradient(155deg,var(--i1),var(--i2));color:#f1ecff}
+.card.lor .face{background:linear-gradient(180deg,#1d1838,#100c22);box-shadow:inset 0 0 0 1px rgba(217,181,106,.55)}
+.card.lor .hd{justify-content:flex-start}
+.card.lor .nm{color:#f5e7c4;flex:1;min-width:0}
+.card.lor .cost{flex:0 0 auto;min-width:1.45em;height:1.45em;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff3c9,#c79a3a 70%);color:#2a1f08;font:800 .82em/1 Figtree,sans-serif;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.card.lor .art .emb svg{fill:rgba(255,245,220,.82)}
+.card.lor .fac{position:absolute;left:.4em;bottom:.3em;font-size:.55em;font-weight:700;color:rgba(255,245,220,.9);text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.card.lor .kind{color:#cfc4ec}
+.card.lor .ft{color:#b9aedd}
+.card.lor .ft .st{color:#f1ecff;font-variant-numeric:tabular-nums}
+.card.lor .rar{font-size:.9em;letter-spacing:0}
+.card.lor.q-L{box-shadow:0 0 0 2px #e8c35a,0 10px 30px rgba(232,195,90,.5)}
+.card.lor.q-EP{box-shadow:0 0 0 2px #b35cff,0 10px 34px rgba(163,53,238,.5)}
+.card.lor.q-EN,.card.lor.q-IC{box-shadow:0 0 0 3px #fff,0 0 40px rgba(180,200,255,.8)}
+.card.lor.holo{--ho:.45}.card.lor.hasimg{padding:0}
+.card.lor.hasimg .face{visibility:hidden}
+.cell:has(.card.lor){container-type:inline-size}
+.cell .card.lor{--w:100cqw}
 .card.wow.holo{--ho:.42}.card.wow.hasimg.holo{--ho:.34}
 .cell:has(.card.wow){container-type:inline-size}
 .cell .card.wow{--w:100cqw}
@@ -216,6 +234,8 @@ dialog .meta b{color:var(--ink)}
 .cback.wowb svg{fill:#e8c27a}
 .cback.hsb{background:radial-gradient(circle at 50% 50%,rgba(255,215,120,.28),transparent 40%),repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,215,140,.07) 0 10deg,transparent 10deg 20deg),linear-gradient(155deg,#1d3f8f,#0e1e4a);box-shadow:inset 0 0 0 5px #c9a14a,inset 0 0 0 7px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.35)}
 .cback.hsb svg{fill:#f2cf72}
+.cback.lorb{background:radial-gradient(circle at 50% 50%,rgba(240,210,140,.25),transparent 42%),repeating-radial-gradient(circle at 50% 50%,rgba(240,210,140,.08) 0 4px,transparent 4px 14px),linear-gradient(155deg,#2a2150,#120d26);box-shadow:inset 0 0 0 5px #d9b56a,inset 0 0 0 7px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.35)}
+.cback.lorb svg{fill:#e8cf8f}
 .cback.g-gold{--gc:#ffc83d}.cback.g-violet{--gc:#a67bff}.cback.g-orange{--gc:#ff8a1a}.cback.g-rainbow{--gc:#fff}
 .cback[class*=" g-"]{box-shadow:inset 0 0 0 5px var(--gc),0 0 16px 4px var(--gc)}
 .cback[class*=" g-"]::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:0 0 34px 12px var(--gc);animation:glowPulse 1.1s ease-in-out infinite}
@@ -294,7 +314,7 @@ const SETS=D.sets, RATES=D.rates;
 const CARDS=D.cards.map(c=>({set:c[0],num:c[1],name:c[2],r:c[3],el:c[4],type:c[5],packs:c[6],isid:c[7],id:c[0]+'-'+c[1]}));
 const IMG_ENABLED=true;
 function wowImg(c){const s=SETBY[c.set],w=s&&s.wimg;if(!w)return null;const n=String(c.num);return w.base+(/^\d+$/.test(n)&&w.pad?n.padStart(w.pad,'0'):n)+w.ext}
-function imgUrl(c,lang,q){if(c.w)return wowImg(c);if(c.h)return hsImg(c,q);const s=SETBY[c.set];if(!s||!s.img)return null;const [ser,sid]=s.img.split('/');const num=typeof c.num==='number'?String(c.num).padStart(3,'0'):c.num;return `https://assets.tcgdex.net/${lang}/${ser}/${c.isid||sid}/${encodeURIComponent(num)}/${q}.webp`}
+function imgUrl(c,lang,q){if(c.w)return wowImg(c);if(c.h)return hsImg(c,q);if(c.l)return c.img||null;const s=SETBY[c.set];if(!s||!s.img)return null;const [ser,sid]=s.img.split('/');const num=typeof c.num==='number'?String(c.num).padStart(3,'0'):c.num;return `https://assets.tcgdex.net/${lang}/${ser}/${c.isid||sid}/${encodeURIComponent(num)}/${q}.webp`}
 window.imgErr=function(im){if(im.hasAttribute('crossorigin')){im.removeAttribute('crossorigin');im.src=im.src;return}const en=im.dataset.en;if(en&&im.src!==en){im.dataset.en='';im.src=en;return}im.remove()};
 const BYSET={};CARDS.forEach(c=>(BYSET[c.set]=BYSET[c.set]||[]).push(c));
 const BYID={};CARDS.forEach(c=>BYID[c.id]=c);
@@ -307,7 +327,7 @@ const FACW={alliance:['Alliance',218],horde:['Horde',0]};
 const KINDW={hero:'Héros',ally:'Allié',ability:'Capacité',instant:'Capacité instantanée',equipment:'Équipement',quest:'Quête',location:'Lieu',other:'Carte'};
 const GLYPH={hero:'M3 18h18l1-11-6 4-4-7-4 7-6-4z',ally:'M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z',ability:'M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z',instant:'M13.5 1L4 14h7l-1.5 9L20 10h-7l.5-9z',equipment:'M20 2l-1.5 6.5-8.5 8.5 2 2-2 2-2-2-3 3-2-2 3-3-2-2 2-2 2 2 8.5-8.5z',quest:'M10 3h4l-1 12h-2zM10 18h4v3h-4z',location:'M6 22V9L4 7V3h3v2h2V3h2v2h2V3h2v2h2V3h3v4l-2 2v13h-5v-5h-4v5z',other:'M12 2l10 10-10 10L2 12z'};
 const gameOf=code=>(SETBY[code]||{}).game||'pocket';
-const RT=code=>{const g=gameOf(code);return g==='wow'?RARW:g==='hs'?RARH:g==='tcg'?RART:RARP};
+const RT=code=>{const g=gameOf(code);return g==='wow'?RARW:g==='hs'?RARH:g==='lor'?RARL:g==='tcg'?RART:RARP};
 const rl=c=>(RT(c.set)[c.r]||[c.r,0])[0];
 const rank=c=>(RT(c.set)[c.r]||[0,0])[1];
 const isHit=c=>rank(c)>=5;
@@ -341,6 +361,7 @@ function wowCardHTML(c){
 function cardHTML(c,opts={}){
   if(c.w)return wowCardHTML(c);
   if(c.h)return hsCardHTML(c,opts);
+  if(c.l)return lorCardHTML(c,opts);
   const q=opts.q||'low', useImg=IMG_ENABLED&&S.img!==false, u=useImg?imgUrl(c,'fr',q):null;
   const e=EL[c.el], isT=c.type!=='pokemon';
   const c1=e?e[1]:'#d5dbe6', c2=e?e[2]:'#8d97ab', hue=e?e[3]:220;
@@ -368,6 +389,53 @@ function cardHTML(c,opts={}){
    <div class="ft"><span class="rar">${rarHTML(r,c.set)}</span><span>${tcg?'':c.set+' '}${String(c.num).padStart(3,'0')}</span></div></div>${u?`<img class="real" src="${u}" data-en="${imgUrl(c,'en',q)}" alt="" loading="lazy" decoding="async" crossorigin="anonymous" onload="this.parentNode.classList.add('hasimg')" onerror="imgErr(this)">`:''}</div>`;
 }
 SETS.forEach(s=>s.count=(BYSET[s.code]||[]).length);
+
+/* ---------- Disney Lorcana (data/lorcana-cards.json, mis à jour par GitHub Actions depuis LorcanaJSON) ---------- */
+const LOR_URL='data/lorcana-cards.json';
+const RARL={C:['Commune',1],U:['Inhabituelle',2],R:['Rare',3],SR:['Très rare',4],L:['Légendaire',6],EP:['Épique',7],EN:['Enchantée',9],IC:['Iconique',10]};
+const LINK={amber:['Ambre','#f4b400',45],amethyst:['Améthyste','#8e44ad',285],emerald:['Émeraude','#2e9e5b',145],ruby:['Rubis','#c8102e',355],sapphire:['Saphir','#1f7ac2',210],steel:['Acier','#8a95a5',215]};
+const LTYPE={character:'Personnage',action:'Action',item:'Objet',location:'Lieu',other:'Carte'};
+const LGLYPH={character:'M12 2a4 4 0 110 8 4 4 0 010-8zm-7 20c0-5 3-8 7-8s7 3 7 8z',action:'M13.5 1L4 14h7l-1.5 9L20 10h-7l.5-9z',item:'M12 2l3 5 6 1-4.5 4 1 6L12 15l-5.5 3 1-6L3 8l6-1z',location:'M6 22V9L4 7V3h3v2h2V3h2v2h2V3h2v2h2V3h3v4l-2 2v13z',other:'M12 2l9 5v10l-9 5-9-5V7z'};
+let lorInfo=null;
+function lorCardHTML(c,opts={}){
+  const inks=(c.ink||'').split('-').filter(k=>LINK[k]), i1=LINK[inks[0]]||['','#8a95a5',215], i2=LINK[inks[1]]||i1, hu=i1[2];
+  const h=hash(c.id), x=20+h%60, y=15+(h>>8)%55, foil=!!c.f;
+  const art=`background:radial-gradient(circle at ${x}% ${y}%,hsl(${hu} 80% 70%/.8),transparent 42%),radial-gradient(circle at ${100-x}% ${95-y}%,hsl(${(hu+30)%360} 60% 50%/.6),transparent 50%),linear-gradient(160deg,hsl(${hu} 50% 36%),hsl(${hu} 55% 14%))`;
+  const cls=['card','lor','q-'+c.r];if(['L','EP','EN','IC'].includes(c.r)||foil)cls.push('holo');if(c.r==='EN'||c.r==='IC')cls.push('crown');
+  const st=c.type==='character'?`⚔ ${esc(c.atk)} · ⛨ ${esc(c.hp)} · ◆ ${esc(c.lore)}`:c.type==='location'&&c.hp!==''?`⛨ ${esc(c.hp)}`:'';
+  const u=IMG_ENABLED&&S.img!==false&&c.img?c.img:null;
+  return `<div class="${cls.join(' ')}" style="--i1:${i1[1]};--i2:${i2[1]};--fh:${hu}" data-id="${c.id}">
+   <div class="face"><div class="hd">${c.cost!==''?`<span class="cost">${esc(c.cost)}</span>`:''}<span class="nm">${esc(c.name)}</span></div>
+   <div class="art" style="${art}"><div class="emb"><svg viewBox="0 0 24 24"><path d="${LGLYPH[c.type]||LGLYPH.other}"/></svg></div><span class="fac">${esc(inks.map(k=>LINK[k][0]).join(' · '))}</span></div>
+   <div class="kind">${LTYPE[c.type]||'Carte'}${foil?' · Brillante':''}</div>
+   <div class="ft"><span class="st">${st}</span><span class="rar">${esc(RARL[c.r]?RARL[c.r][0]:'')} · ${c.num}</span></div></div>${u?`<img class="real" src="${esc(u)}" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add('hasimg')" onerror="this.remove()">`:''}</div>`;
+}
+function mergeLor(d){
+  for(let i=SETS.length-1;i>=0;i--)if(SETS[i].game==='lor'){delete SETBY[SETS[i].code];delete BYSET[SETS[i].code];SETS.splice(i,1)}
+  for(let i=CARDS.length-1;i>=0;i--)if(CARDS[i].l){delete BYID[CARDS[i].id];CARDS.splice(i,1)}
+  if(!d||!Array.isArray(d.sets)||!Array.isArray(d.cards))return;
+  d.sets.forEach(s=>{const code='LOR-'+s.code,set={code,abbr:'Lorcana',name:s.name,date:s.date,year:s.year,series:String(s.year),packs:['Booster'],game:'lor',size:12,base:s.base};SETS.push(set);SETBY[code]=set;BYSET[code]=[]});
+  d.cards.forEach(a=>{const code='LOR-'+a[0];if(!BYSET[code])return;const c={l:1,set:code,num:a[1],name:a[2],r:a[3],ink:a[4],cost:a[5],type:a[6],atk:a[7],hp:a[8],lore:a[9],img:a[10],packs:[],id:code+'-'+a[1]};CARDS.push(c);BYSET[code].push(c);BYID[c.id]=c});
+  for(let i=SETS.length-1;i>=0;i--){const s=SETS[i];if(s.game!=='lor')continue;s.count=BYSET[s.code].length;if(!s.count){delete SETBY[s.code];delete BYSET[s.code];SETS.splice(i,1)}}
+  lorInfo={updated:d.updated||''};
+}
+async function loadLor(){try{const r=await fetch(LOR_URL);if(!r.ok)return {ok:false};mergeLor(await r.json());return {ok:true}}catch(e){return {ok:false}}}
+// Booster de 12 cartes : 6 communes, 3 inhabituelles, 2 rares ou mieux, 1 brillante (toutes raretés).
+// Taux approximatifs constatés par les joueurs (Ravensburger ne les publie pas).
+const LOR_RARE={R:.75,SR:.19,L:.06};
+const LOR_FOIL={C:.50,U:.26,R:.12,SR:.07,L:.05};
+const LOR_SPECIAL={EN:1/96,EP:1/12,IC:1/480};
+function openLor(code){
+  const all=BYSET[code]||[], by={};all.forEach(c=>(by[c.r]=by[c.r]||[]).push(c));
+  const used=new Set(), out=[];
+  const draw=(r,foil)=>{let l=(by[r]||[]).filter(c=>!used.has(c.id));if(!l.length)l=(by.C||all).filter(c=>!used.has(c.id));if(!l.length)return;const c=l[Math.floor(Math.random()*l.length)];used.add(c.id);out.push(foil?Object.assign({},c,{f:1}):c)};
+  for(let i=0;i<6;i++)draw('C');
+  for(let i=0;i<3;i++)draw('U');
+  for(let i=0;i<2;i++)draw(pick(Object.entries(LOR_RARE).filter(([r])=>by[r]&&by[r].length)));
+  let sp=null;for(const [r,p] of Object.entries(LOR_SPECIAL))if(by[r]&&by[r].length&&Math.random()<p){sp=r;break}
+  draw(sp||pick(Object.entries(LOR_FOIL).filter(([r])=>by[r]&&by[r].length)),!sp);
+  return {cards:out,rare:!!sp&&sp!=='EP'};
+}
 
 /* ---------- Hearthstone (data/hs-cards.json, mis à jour par GitHub Actions depuis HearthSim) ---------- */
 const HS_URL='data/hs-cards.json';
@@ -516,6 +584,7 @@ function openWow(code){
 function openPack(code,pack,dry){
   if(gameOf(code)==='wow')return openWow(code);
   if(gameOf(code)==='hs')return openHs(code,dry);
+  if(gameOf(code)==='lor')return openLor(code);
   const pool=poolFor(code,pack), R=ratesFor(code);
   const byR={};pool.forEach(c=>(byR[c.r]=byR[c.r]||[]).push(c));
   const hasSAR=Object.values(R).some(v=>Object.values(v.slots||{}).some(s=>'SAR' in s));
@@ -533,7 +602,7 @@ function openPack(code,pack,dry){
   return {cards:out,rare:variant!==R['Regular Pack']&&!('Regular Pack +1' in R&&variant===R['Regular Pack +1'])};
 }
 const VAL={1:1,2:2,3:5,4:15,5:40,6:80,7:150,8:250,9:400,10:700,11:1200};
-const sellVal=c=>(VAL[rank(c)]||1)*(c.g?4:1), buyVal=c=>sellVal(c)*10;
+const sellVal=c=>(VAL[rank(c)]||1)*(c.g?4:c.f?2:1), buyVal=c=>sellVal(c)*10;
 const fmt=n=>n.toLocaleString('fr-FR');
 function commit(cards){
   return cards.map(c=>{
@@ -551,11 +620,12 @@ const view=document.getElementById('view');
 function serOrder(){const seen=[];[...SETS].sort((a,b)=>a.date<b.date?-1:1).forEach(s=>{if(!seen.some(x=>x[0]===s.game&&x[1]===s.series))seen.push([s.game,s.series])});return seen}
 const lastIn=(g,sr)=>{const l=[...SETS].filter(s=>s.game===g&&s.series===sr).sort((a,b)=>a.date<b.date?-1:1);return l.length?l[l.length-1].code:null};
 const lastSer=g=>{const l=serOrder().filter(x=>x[0]===g);return l.length?l[l.length-1][1]:null};
-const GAMES=[['pocket','Pocket'],['tcg','JCC classique'],['wow','WoW'],['hs','Hearthstone']], GLBL={pocket:'Pocket',tcg:'JCC',wow:'WoW',hs:'Hearthstone'};
+const GAMES=[['pocket','Pocket'],['tcg','JCC classique'],['wow','WoW'],['hs','Hearthstone'],['lor','Lorcana']], GLBL={pocket:'Pocket',tcg:'JCC',wow:'WoW',hs:'Hearthstone',lor:'Lorcana'};
 let game='pocket', series=lastSer('pocket'), tab='open', cur=lastIn('pocket',series), curPack=null, colSet=null, colFilter='all', colRar='all';
 function packHuePref(code,pack){
   if(gameOf(code)==='wow'){const s=(SETBY[code]||{}).series||'';return /Azeroth/.test(s)?36:/Burning/.test(s)?105:hash(code)%360}
   if(gameOf(code)==='hs')return (hash(code)*7)%360;
+  if(gameOf(code)==='lor')return (hash(code)*11+200)%360;
   const set=SETBY[code]||{packs:[]}, all=poolFor(code,pack);
   if(set.packs.length>1){const nm=pk(pack).toLowerCase();const m=(BYSET[code]||[]).find(c=>c.el&&c.name.toLowerCase().startsWith(nm));if(m)return EL[m.el][3]}
   const excl=set.packs.length>1?all.filter(c=>c.el&&c.packs.length&&c.packs.filter(x=>set.packs.includes(x)).length===1):[];
@@ -578,7 +648,7 @@ function packHTML(set,pack,small,pressed){
   const multi=set.packs.length>1;
   return `<button class="pack${small?' small':''}" style="--h:${packHue(set.code,multi?pack:null)}" data-pack="${esc(pack)}" aria-pressed="${pressed}" aria-label="Booster ${esc(set.name)}${multi?' '+esc(pk(pack)):''}">
    <span class="body"><span class="ring"></span></span><span class="top"></span>
-   <span class="label"><span class="code">${set.abbr||set.code} · ${set.count} cartes</span><h3>${esc(set.name)}</h3><span class="pk">${multi?esc(pk(pack)):(set.game==='wow'||set.game==='hs'?set.size+' cartes par booster':set.game==='tcg'?(RATES[set.code]['Regular Pack'].cards+' cartes par booster'):'Booster')}</span></span></button>`;
+   <span class="label"><span class="code">${set.abbr||set.code} · ${set.count} cartes</span><h3>${esc(set.name)}</h3><span class="pk">${multi?esc(pk(pack)):(set.game==='wow'||set.game==='hs'||set.game==='lor'?set.size+' cartes par booster':set.game==='tcg'?(RATES[set.code]['Regular Pack'].cards+' cartes par booster'):'Booster')}</span></span></button>`;
 }
 function tally(){
   const u=Object.keys(S.c).length;document.getElementById('tPacks').innerHTML=`<b>${S.t}</b> booster${S.t>1?'s':''} ouvert${S.t>1?'s':''}`;document.getElementById('tCards').innerHTML=`<b>${u}</b> carte${u>1?'s':''} unique${u>1?'s':''}`;document.getElementById('tMoney').innerHTML=`<b>${fmt(S.m)}</b> 🪙`;
@@ -587,6 +657,7 @@ function gameBar(){return `<div class="series">${GAMES.map(([g,l])=>`<button cla
 function bindGames(){view.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>{if(game===b.dataset.game)return;game=b.dataset.game;series=lastSer(game);cur=series?lastIn(game,series):null;render()})}
 function wowSource(){return `<div class="wowsrc"><button class="btn ghost" id="wowup">Chercher de nouvelles extensions</button><p class="hint">Liste des cartes : WoWTCGFR${wowInfo&&wowInfo.updated?`, mise à jour le ${new Date(wowInfo.updated).toLocaleDateString('fr-FR')}`:''}.</p></div>`}
 function hsSource(){return `<div class="wowsrc"><p class="hint">Données des cartes : HearthSim${hsInfo&&hsInfo.updated?`, mises à jour le ${new Date(hsInfo.updated).toLocaleDateString('fr-FR')}`:''}. Un booster contient 5 cartes dont au moins une rare ; épique garantie en 10 boosters, légendaire en 40, sans légendaire en double.</p></div>`}
+function lorSource(){return `<div class="wowsrc"><p class="hint">${lorInfo?`Données des cartes : LorcanaJSON${lorInfo.updated?`, mises à jour le ${new Date(lorInfo.updated).toLocaleDateString('fr-FR')}`:''}. `:'La liste des cartes Lorcana est téléchargée par la tâche automatique de votre dépôt GitHub (onglet Actions). '}Un booster contient 12 cartes : 6 communes, 3 inhabituelles, 2 rares ou mieux et 1 brillante. Taux approximatifs.</p></div>`}
 function bindWowUp(){
   const b=document.getElementById('wowup');if(!b)return;
   b.onclick=async()=>{
@@ -602,7 +673,7 @@ function bindWowUp(){
 function renderOpen(){
   const set=SETS.find(s=>s.code===cur);
   if(!set){
-    view.innerHTML=`${gameBar()}<div class="stage"><div style="text-align:center;max-width:420px"><h2 style="font-size:1.4rem">Aucune extension chargée</h2><p class="hint">La liste des cartes n’est pas encore sur cet appareil.</p>${game==='wow'?wowSource():game==='hs'?hsSource():''}</div></div>`;
+    view.innerHTML=`${gameBar()}<div class="stage"><div style="text-align:center;max-width:420px"><h2 style="font-size:1.4rem">Aucune extension chargée</h2><p class="hint">La liste des cartes n’est pas encore sur cet appareil.</p>${game==='wow'?wowSource():game==='hs'?hsSource():game==='lor'?lorSource():''}</div></div>`;
     bindGames();bindWowUp();return;
   }
   if(!curPack||!set.packs.includes(curPack))curPack=set.packs[0];
@@ -610,12 +681,12 @@ function renderOpen(){
   view.innerHTML=`
    ${gameBar()}
    <div class="series serrow">${serList.map(x=>`<button class="pill" data-ser="${esc(x)}" aria-pressed="${x===series}">${esc(x)}</button>`).join('')}</div>
-   <div class="setrail" id="rail">${SETS.filter(s=>s.game===game&&s.series===series).sort((a,b)=>a.date<b.date?-1:1).map(s=>`<button class="setchip" data-set="${s.code}" aria-pressed="${s.code===cur}"><small>${s.game==='wow'?s.abbr+' · '+s.year:s.game==='hs'?'Hearthstone · '+s.year:s.code+' · '+new Date(s.date).toLocaleDateString('fr-FR',{month:'short',year:'numeric'})}</small><span>${esc(s.name)}</span><small>${own(s.code)}/${s.count} obtenues</small></button>`).join('')}</div>
+   <div class="setrail" id="rail">${SETS.filter(s=>s.game===game&&s.series===series).sort((a,b)=>a.date<b.date?-1:1).map(s=>`<button class="setchip" data-set="${s.code}" aria-pressed="${s.code===cur}"><small>${s.game==='wow'?s.abbr+' · '+s.year:s.game==='hs'?'Hearthstone · '+s.year:s.game==='lor'?'Lorcana · '+s.year:s.code+' · '+new Date(s.date).toLocaleDateString('fr-FR',{month:'short',year:'numeric'})}</small><span>${esc(s.name)}</span><small>${own(s.code)}/${s.count} obtenues</small></button>`).join('')}</div>
    <div class="stage"><div>
      <div class="packs">${set.packs.map(p=>packHTML(set,p,set.packs.length>1,p===curPack)).join('')}</div>
      <div class="actions"><button class="btn" id="go">Ouvrir un booster</button><button class="btn ghost" id="go10">Ouvrir 10 boosters</button></div>
      <p class="hint">${set.packs.length>1?'Choisissez un booster, puis ouvrez-le.':'Touchez le booster pour l’ouvrir.'} ${(S.p[cur]||0)} ouvert${(S.p[cur]||0)>1?'s':''} dans cette extension.</p>
-   </div></div>${game==='wow'?wowSource():game==='hs'?hsSource():''}`;
+   </div></div>${game==='wow'?wowSource():game==='hs'?hsSource():game==='lor'?lorSource():''}`;
   bindGames();bindWowUp();
   view.querySelectorAll('[data-ser]').forEach(b=>b.onclick=()=>{series=b.dataset.ser;cur=lastIn(game,series);render()});
   const sp=view.querySelector('.serrow [aria-pressed="true"]');if(sp)sp.scrollIntoView({block:'nearest',inline:'nearest'});
@@ -633,7 +704,7 @@ function start(n){
   const all=packs.flatMap(p=>p.cards);
   if(IMG_ENABLED&&S.img!==false)(n===1?all:all.filter(isHit)).forEach(c=>{const u=imgUrl(c,'fr',n===1?'high':'low');if(u){const i=new Image();i.src=u}});
   const st=commit(all);S.t+=n;S.p[cur]=(S.p[cur]||0)+n;
-  recordPull(all,gameOf(cur)==='wow'||gameOf(cur)==='hs'?0:packs.filter(p=>p.rare).length,n*expectedHits(cur,pack));
+  recordPull(all,gameOf(cur)==='wow'||gameOf(cur)==='hs'||gameOf(cur)==='lor'?0:packs.filter(p=>p.rare).length,n*expectedHits(cur,pack));
   save();tally();
   const el=view.querySelector(`.pack[data-pack="${CSS.escape(curPack)}"]`)||view.querySelector('.pack');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -654,8 +725,8 @@ function runSeq(packs,st,all,n,set,pack){
   };
   preload(0);show(0);
 }
-function best(c){return rank(c)+(c.g?.5:0)}
-function backHTML(c,plain){const t=c&&!plain?tier(c):null;return `<div class="cback${c&&c.w?' wowb':c&&c.h?' hsb':''}${t?' g-'+t.col:''}"><svg viewBox="0 0 24 24"><path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z"/></svg></div>`}
+function best(c){return rank(c)+(c.g||c.f?.5:0)}
+function backHTML(c,plain){const t=c&&!plain?tier(c):null;return `<div class="cback${c&&c.w?' wowb':c&&c.h?' hsb':c&&c.l?' lorb':''}${t?' g-'+t.col:''}"><svg viewBox="0 0 24 24"><path d="M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6z"/></svg></div>`}
 function flipHTML(c,st,q,open,plain,extra){const t=!plain&&c?tier(c):null;return `<div class="flip${open?' open':''}${t&&t.big?' wig':''}"><div class="fb">${backHTML(c,plain)}</div><div class="ff">${cardHTML(c,{q:q||'high'})}${st!==undefined?badge(st):''}${extra||''}</div></div>`}
 function reveal(p,st,seq){
   let i=0,opened=false;const cards=p.cards;
@@ -700,7 +771,7 @@ function cardPacks(c){const s=SETBY[c.set];if(!s||s.game!=='pocket'||s.packs.len
 function packTags(c){const p=cardPacks(c);if(!p||!p.length)return '';return `<span class="ptags">${p.map(x=>`<span class="ptag" style="--h:${packHue(c.set,x)}">${esc(pk(x))}</span>`).join('')}</span>`}
 function packLine(c){const p=cardPacks(c);if(!p)return '';return `<br>Booster : <b>${p.length?p.map(x=>esc(pk(x))).join(', '):'tous les boosters de l’extension'}</b>`}
 let colPack='all';
-const numLabel=c=>c.h?esc(c.name):String(c.num).padStart(3,'0');
+const numLabel=c=>c.h||c.l?esc(c.name):String(c.num).padStart(3,'0');
 function renderCol(){
   if(!colSet||!SETBY[colSet])colSet=cur&&SETBY[cur]?cur:SETS[0].code;
   const set=SETS.find(s=>s.code===colSet), list=BYSET[colSet]||[];
@@ -768,11 +839,12 @@ function confirmReset(){
 }
 dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
 const REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const gameOfCode=code=>String(code).startsWith('WOW-')?'wow':String(code).startsWith('HS-')?'hs':gameOf(code);
+const gameOfCode=code=>String(code).startsWith('WOW-')?'wow':String(code).startsWith('HS-')?'hs':String(code).startsWith('LOR-')?'lor':gameOf(code);
 /* ---------- paliers de rareté ---------- */
 function tier(c){
   if(!isHit(c))return null;
   const g=c.w?'wow':gameOf(c.set), r=c.r;
+  if(g==='lor')return r==='IC'?{col:'orange',big:true}:r==='EN'?{col:'rainbow',big:true}:r==='EP'?{col:'violet',big:false}:{col:'gold',big:false};
   if(g==='hs')return r==='L'?{col:c.g?'rainbow':'orange',big:true}:{col:c.g?'gold':'violet',big:false};
   if(g==='wow')return r==='L'?{col:'orange',big:true}:{col:'violet',big:false};
   if(g==='tcg')return r==='SEC'?{col:'rainbow',big:true}:r==='SH'?{col:'violet',big:false}:{col:'gold',big:r==='SIR'};
@@ -814,6 +886,7 @@ function expectedHits(code,pack){
   let e=0;
   if(gameOf(code)==='wow'){const l=BYSET[code]||[];e=(l.some(c=>c.r==='E')?EPIC_RATE:0)+(l.some(c=>c.r==='L')?LOOT_RATE:0)}
   else if(gameOf(code)==='hs')e=5*(HS_RATES.E+HS_RATES.L);
+  else if(gameOf(code)==='lor'){const l=BYSET[code]||[],has=r=>l.some(c=>c.r===r);e=(has('L')?2*LOR_RARE.L+LOR_FOIL.L:0)+(has('EN')?LOR_SPECIAL.EN:0)+(has('EP')?LOR_SPECIAL.EP:0)+(has('IC')?LOR_SPECIAL.IC:0)}
   else{const pool=poolFor(code,pack),R=ratesFor(code),byR={};pool.forEach(c=>(byR[c.r]=byR[c.r]||[]).push(c));
     const hasSAR=Object.values(R).some(v=>Object.values(v.slots||{}).some(s=>'SAR' in s));if(!hasSAR&&byR.SAR)byR.SR=(byR.SR||[]).concat(byR.SAR);
     const vs=Object.values(R),tw=vs.reduce((a,v)=>a+(v.appearance_rate||0),0)||1;
@@ -841,7 +914,7 @@ const ACH=[
  ['u1000','Archiviste','Posséder 1 000 cartes différentes',1500,()=>[uniq(),1000]],
  ['hit1','Ça brille !','Tirer une première carte rare ou mieux',50,()=>[S.st.hits,1]],
  ['hit50','Chasseur de rares','Tirer 50 cartes rares ou mieux',400,()=>[S.st.hits,50]],
- ['big1','Le jackpot','Tirer une des cartes les plus rares (Couronne, rare secrète, Légendaire…)',500,()=>[S.st.big,1]],
+ ['big1','Le jackpot','Tirer une des cartes les plus rares (Couronne, rare secrète, Légendaire, Enchantée…)',500,()=>[S.st.big,1]],
  ['rp1','Booster rare','Ouvrir un booster rare',300,()=>[S.st.rarePacks,1]],
  ['set1','Extension complète','Compléter une extension à 100 %',1000,()=>[completeSets(),1]],
  ['set5','Maître collectionneur','Compléter 5 extensions',3000,()=>[completeSets(),5]],
@@ -861,12 +934,12 @@ function checkAch(){
 }
 function renderAch(){
   const s=S.st, luck=s.exp>=0.5?Math.round(s.hits/s.exp*100):null;
-  const byG={pocket:0,tcg:0,wow:0,hs:0};for(const k in S.p)byG[gameOfCode(k)]=(byG[gameOfCode(k)]||0)+S.p[k];
+  const byG={pocket:0,tcg:0,wow:0,hs:0,lor:0};for(const k in S.p)byG[gameOfCode(k)]=(byG[gameOfCode(k)]||0)+S.p[k];
   const done=ACH.filter(a=>S.ach[a[0]]).length;
   const bests=s.best.map(b=>BYID[b.id]).filter(Boolean);
   view.innerHTML=`<section class="prog"><h2>Statistiques</h2>
     <div class="stats">
-     <div><b>${fmt(S.t)}</b><span>boosters ouverts</span><small>Pocket ${fmt(byG.pocket)} · JCC ${fmt(byG.tcg)} · WoW ${fmt(byG.wow||0)} · Hearthstone ${fmt(byG.hs||0)}</small></div>
+     <div><b>${fmt(S.t)}</b><span>boosters ouverts</span><small>Pocket ${fmt(byG.pocket)} · JCC ${fmt(byG.tcg)} · WoW ${fmt(byG.wow||0)} · Hearthstone ${fmt(byG.hs||0)} · Lorcana ${fmt(byG.lor||0)}</small></div>
      <div><b>${fmt(s.pulled)}</b><span>cartes tirées</span></div>
      <div><b>${fmt(uniq())}</b><span>cartes différentes</span></div>
      <div><b>${fmt(s.hits)}</b><span>cartes rares ou mieux</span><small>dont ${fmt(s.big)} parmi les plus rares</small></div>
@@ -950,6 +1023,7 @@ function wpPick(el,els){
 function render(){tally();({open:renderOpen,col:renderCol,wp:renderWp,ach:renderAch}[tab]||renderOpen)()}
 document.querySelectorAll('nav.tabs [data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;revealing=false;if(tab==='col')colSet=cur;if(tab==='wp'&&!wpState.busy)wpState.offer=null;document.querySelectorAll('nav.tabs [data-tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));render();window.scrollTo({top:0})});
 render();checkAch();
+loadLor().then(r=>{if(!r.ok)return;if(game==='lor'&&!SETBY[cur]){series=lastSer('lor');cur=series?lastIn('lor',series):null}if((game==='lor'||tab==='col')&&!revealing&&!view.querySelector('#rv,.summary'))render();checkAch()});
 loadHs().then(r=>{if(!r.ok)return;if(game==='hs'&&!SETBY[cur]){series=lastSer('hs');cur=series?lastIn('hs',series):null}if((game==='hs'||tab==='col')&&!revealing&&!view.querySelector('#rv,.summary'))render();checkAch()});
 loadWow(false).then(r=>{if(!r.ok)return;if(game==='wow'&&!SETBY[cur]){series=lastSer('wow');cur=series?lastIn('wow',series):null}if((game==='wow'||tab==='col')&&!view.querySelector('#rv,.summary'))render();checkAch()});
 })();
