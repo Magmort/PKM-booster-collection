@@ -1,4 +1,4 @@
-name: Mise à jour des cartes WoW
+name: Mise à jour des cartes WoW et Hearthstone
 
 on:
   schedule:
@@ -20,14 +20,16 @@ jobs:
         run: npm install --no-save --no-package-lock cheerio@1.0.0
       - name: Récupérer les cartes sur WoWTCGFR
         run: node scripts/fetch-wow.mjs
+      - name: Récupérer les cartes Hearthstone (HearthSim)
+        run: node scripts/fetch-hs.mjs
       - name: Enregistrer les changements
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-          git add data/wow-cards.json
+          git add data/wow-cards.json data/hs-cards.json
           if git diff --cached --quiet; then
             echo "Aucune nouveauté."
           else
-            git commit -m "Mise à jour des cartes WoW"
+            git commit -m "Mise à jour des cartes WoW et Hearthstone"
             git push
           fi
