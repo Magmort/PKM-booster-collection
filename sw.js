@@ -1,5 +1,5 @@
 // Service worker : fonctionnement hors ligne et mise en cache des visuels
-const VERSION = 'v19';
+const VERSION = 'v20';
 const APP = 'app-' + VERSION;
 const IMG = 'img-v1';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'Icons/icon-192.png', 'Icons/icon-512.png', 'Icons/icon-maskable-512.png'];
@@ -52,7 +52,7 @@ self.addEventListener('fetch', e => {
 
   // Application : réseau d'abord (pour recevoir les mises à jour), cache si hors ligne
   if (url.origin === location.origin) {
-    e.respondWith(fetch(req).then(res => {
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(res => {
       if (res.ok) caches.open(APP).then(c => c.put(req, res.clone()));
       return res;
     }).catch(() => caches.match(req).then(r => r || caches.match('index.html'))));

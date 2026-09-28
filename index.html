@@ -653,12 +653,12 @@ function packHue(code,pack){
   return hueCache[code][pack]!==undefined?hueCache[code][pack]:packHuePref(code,pack);
 }
 /* Visuels officiels des boosters : image du booster (Pocket) ou logo d'extension (JCC classique), chargés à l'affichage */
-const PACK_IMG_BASE='https://cdn.jsdelivr.net/gh/flibustier/pokemon-tcg-pocket-database@main/dist/images/packs/';
+const PACK_IMG_BASE='https://cdn.jsdelivr.net/gh/flibustier/pokemon-tcg-pocket-database@main/dist/images/packs/', PACK_IMG_ALT='https://raw.githubusercontent.com/flibustier/pokemon-tcg-pocket-database/main/dist/images/packs/';
 const PACK_IMG_FIX={B4a:'Team Rocket'};
 function packImgUrl(set,pack){if(set.game!=='pocket')return null;const n=PACK_IMG_FIX[set.code]||pack;return n?PACK_IMG_BASE+encodeURIComponent(n)+'.webp':null}
 function packArt(set,pack,top){
   if(!IMG_ENABLED||S.img===false)return '';const u=packImgUrl(set,pack);if(!u)return '';
-  return top?`<img class="ptop" src="${u}" alt="" aria-hidden="true">`:`<img class="pimg" src="${u}" alt="" onload="this.closest('.pack').classList.add('hasart')" onerror="const p=this.closest('.pack');if(p)p.querySelectorAll('.pimg,.ptop').forEach(x=>x.remove())">`;
+  return top?`<img class="ptop" src="${u}" alt="" aria-hidden="true">`:`<img class="pimg" src="${u}" alt="" onload="this.closest('.pack').classList.add('hasart')" data-alt="${u.replace(PACK_IMG_BASE,PACK_IMG_ALT)}" onerror="const p=this.closest('.pack');if(!p)return;if(this.dataset.alt){const a=this.dataset.alt;this.dataset.alt='';p.querySelectorAll('.pimg,.ptop').forEach(x=>x.src=a)}else p.querySelectorAll('.pimg,.ptop').forEach(x=>x.remove())">`;
 }
 function tcgdexSet(set){if(set.game!=='tcg'||!set.img)return null;return set.img.split('/')}
 function setLogo(set){
@@ -817,7 +817,7 @@ function renderCol(){
     ${multi?`<select id="cpk" aria-label="Booster"><option value="all">Tous les boosters</option>${set.packs.map(p=>`<option value="${esc(p)}"${colPack===p?' selected':''}>Booster ${esc(pk(p))}</option>`).join('')}</select>`:''}<select id="cr" aria-label="Rareté"><option value="all">Toutes les raretés</option>${rs.map(r=>`<option value="${r}"${colRar===r?' selected':''}>${RR_[r][0]}</option>`).join('')}</select>
    </div>
    <div class="grid">${shown.map(c=>S.c[c.id]?`<button class="cell" data-id="${c.id}" aria-label="${esc(c.name)}">${cardHTML(c)}${S.c[c.id]>1?`<span class="qty">×${S.c[c.id]}</span>`:''}${packTags(c)}</button>`:`<button class="cell miss" data-buy="${c.id}" aria-label="Acheter la carte ${numLabel(c)}"><div class="empty${S.m>=buyVal(c)?' afford':''}"><div>${numLabel(c)}<small>${rl(c)}</small><b class="price">${fmt(buyVal(c))} 🪙</b></div></div>${packTags(c)}</button>`).join('')||'<p class="hint">Aucune carte ne correspond à ces filtres.</p>'}</div>
-   ${IMG_ENABLED?`<div class="econ"><label><input type="checkbox" id="imgt"${S.img!==false?' checked':''}> Afficher les visuels officiels des cartes</label></div>`:''}<div class="actions"><button class="btn ghost" id="exp">Exporter la collection</button><button class="btn ghost" id="imp">Importer une collection</button><button class="btn ghost" id="reset">Réinitialiser la collection</button></div><input type="file" id="impf" accept="application/json,.json" hidden>`;
+   ${IMG_ENABLED?`<div class="econ"><label><input type="checkbox" id="imgt"${S.img!==false?' checked':''}> Afficher les visuels officiels des cartes</label></div>`:''}<p class="hint">Version de l’appli : v20</p><div class="actions"><button class="btn ghost" id="exp">Exporter la collection</button><button class="btn ghost" id="imp">Importer une collection</button><button class="btn ghost" id="reset">Réinitialiser la collection</button></div><input type="file" id="impf" accept="application/json,.json" hidden>`;
   document.getElementById('cs').onchange=e=>{colSet=e.target.value;colRar='all';colPack='all';render()};
   document.getElementById('cr').onchange=e=>{colRar=e.target.value;render()};
   const cpk=document.getElementById('cpk');if(cpk)cpk.onchange=e=>{colPack=e.target.value;render()};
