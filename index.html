@@ -145,7 +145,9 @@ nav.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accen
 .card.hs.golden{background:linear-gradient(155deg,#f7d56b,#b8862a 45%,#6d4c12);box-shadow:0 0 0 3px #ffd257,0 0 34px rgba(255,200,60,.7)}
 .card.hs.golden .nm{color:#ffe28a}
 .card.hs.holo{--ho:.42}.card.hs.golden{--ho:.6}
-.card.hs.hasimg{background:transparent;box-shadow:none}
+.card.hs.hasimg{background:transparent;box-shadow:none;padding:0}
+.card.hs.hasimg .face{visibility:hidden}
+.card.hs.masked{-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
 .card.hs .real{object-fit:contain}
 .cell:has(.card.hs){container-type:inline-size}
 .cell .card.hs{--w:100cqw}
@@ -386,8 +388,12 @@ function hsCardHTML(c,opts={}){
    <div class="face"><div class="hd">${c.cost!==''?`<span class="cost">${esc(c.cost)}</span>`:''}<span class="nm">${esc(c.name)}</span></div>
    <div class="art" style="${art}"><div class="emb"><svg viewBox="0 0 24 24"><path d="${HGLYPH[c.type]||HGLYPH.other}"/></svg></div><span class="fac">${esc(c.cls)}</span></div>
    <div class="kind">${HTYPE[c.type]||'Carte'}${gold?' · Dorée':''}</div>
-   <div class="ft"><span class="st">${st}</span><span class="rar"><i class="gem"></i></span></div></div>${u?`<img class="real" src="${u}" alt="" loading="lazy" decoding="async" crossorigin="anonymous" onload="this.parentNode.classList.add('hasimg')" onerror="if(this.hasAttribute('crossorigin')){this.removeAttribute('crossorigin');this.src=this.src}else this.remove()">`:''}</div>`;
+   <div class="ft"><span class="st">${st}</span><span class="rar"><i class="gem"></i></span></div></div>${u?`<img class="real" src="${u}" alt="" loading="lazy" decoding="async" crossorigin="anonymous" onload="hsLoaded(this)" onerror="if(this.hasAttribute('crossorigin')){this.removeAttribute('crossorigin');this.src=this.src}else this.remove()">`:''}</div>`;
 }
+// Image chargée : on masque la carte (et ses effets) selon la transparence de l'image
+window.hsLoaded=function(im){const c=im.parentNode;if(!c)return;c.classList.add('hasimg');
+  if(im.hasAttribute('crossorigin')){const u='url("'+im.src+'")';c.style.webkitMaskImage=u;c.style.maskImage=u;c.classList.add('masked')}
+  else c.classList.remove('holo')};
 function mergeHs(d){
   for(let i=SETS.length-1;i>=0;i--)if(SETS[i].game==='hs'){delete SETBY[SETS[i].code];delete BYSET[SETS[i].code];SETS.splice(i,1)}
   for(let i=CARDS.length-1;i>=0;i--)if(CARDS[i].h){delete BYID[CARDS[i].id];CARDS.splice(i,1)}
